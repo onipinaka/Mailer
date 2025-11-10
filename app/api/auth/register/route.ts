@@ -16,47 +16,7 @@ import { z } from 'zod';
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  recaptchaToken: z.string().optional(), // Make optional for development
 });
-
-/**
- * Verify Google reCAPTCHA token
- */
-async function verifyRecaptcha(token: string | undefined): Promise<boolean> {
-  // Skip reCAPTCHA in development if not configured
-  if (!token || token === 'no-captcha-in-dev') {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️  reCAPTCHA skipped in development mode');
-      return true;
-    }
-    return false;
-  }
-
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-  
-  if (!secretKey) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️  reCAPTCHA secret key not configured, allowing in dev mode');
-      return true;
-    }
-    console.error('reCAPTCHA secret key not configured');
-    return false;
-  }
-
-  try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `secret=${secretKey}&response=${token}`,
-    });
-
-    const data = await response.json();
-    return data.success === true;
-  } catch (error) {
-    console.error('reCAPTCHA verification error:', error);
-    return false;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,16 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, recaptchaToken } = validation.data;
-
-    // Verify reCAPTCHA
-    const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
-    if (!isRecaptchaValid) {
-      return NextResponse.json(
-        { error: 'reCAPTCHA verification failed' },
-        { status: 400 }
-      );
-    }
+    const { email, password } = validation.data;
 
     // Connect to database
     await dbConnect();

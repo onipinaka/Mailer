@@ -9,8 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail } from 'lucide-react';
 
-declare const grecaptcha: any;
-
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -37,24 +35,10 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Get reCAPTCHA token (skip if site key not configured)
-      let recaptchaToken = 'no-captcha-in-dev';
-      
-      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-      if (siteKey && siteKey !== 'your-recaptcha-site-key' && typeof grecaptcha !== 'undefined') {
-        recaptchaToken = await new Promise<string>((resolve, reject) => {
-          grecaptcha.ready(() => {
-            grecaptcha.execute(siteKey, { action: 'register' })
-              .then(resolve)
-              .catch(() => resolve('no-captcha-in-dev'));
-          });
-        });
-      }
-
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, recaptchaToken }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -145,16 +129,6 @@ export default function RegisterPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Load reCAPTCHA only if configured */}
-      {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && 
-       process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY !== 'your-recaptcha-site-key' && (
-        <script 
-          src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`} 
-          async 
-          defer
-        />
-      )}
     </div>
   );
 }
