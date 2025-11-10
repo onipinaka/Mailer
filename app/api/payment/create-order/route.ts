@@ -46,11 +46,17 @@ export async function POST(request: NextRequest) {
     const price = parseInt(process.env.LIFETIME_PRICE || '4000');
     const currency = process.env.LIFETIME_PRICE_CURRENCY || 'INR';
 
+    // Generate short receipt ID (max 40 chars for Razorpay)
+    // Format: rcpt_<timestamp>_<short_user_id>
+    const timestamp = Date.now();
+    const shortUserId = (user._id as any).toString().slice(-8); // Last 8 chars of user ID
+    const receiptId = `rcpt_${timestamp}_${shortUserId}`; // ~25 chars
+
     // Create Razorpay order
     const result = await createOrder({
       amount: price * 100, // Convert to paise
       currency,
-      receipt: `receipt_${user._id}_${Date.now()}`,
+      receipt: receiptId,
       notes: {
         userId: (user._id as any).toString(),
         email: user.email,
@@ -58,11 +64,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.success) {
+      console.error('❌ Order creation failed:', result.error);
       return NextResponse.json(
-        { error: result.error },
+        { error: result.error || 'Failed to create payment order' },
         { status: 500 }
       );
     }
+
+    console.log('✅ Order created successfully');
+    console.log('   Receipt:', receiptId);
+    console.log('   Order ID:', result.orderId);
+    console.log('   Amount:', result.amount / 100, currency);
 
     return NextResponse.json(
       {
