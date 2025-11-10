@@ -39,10 +39,15 @@ export default function ComposePage() {
     
     Papa.parse(file, {
       header: true,
+      skipEmptyLines: true, // Skip empty lines
       complete: (results) => {
-        setCsvData(results.data);
-        if (results.data.length > 0 && results.data[0]) {
-          setCsvHeaders(Object.keys(results.data[0] as Record<string, any>));
+        // Filter out empty rows and rows without email
+        const validData = (results.data as any[]).filter(row => 
+          row && row.email && row.email.trim() !== ''
+        );
+        setCsvData(validData);
+        if (validData.length > 0 && validData[0]) {
+          setCsvHeaders(Object.keys(validData[0] as Record<string, any>));
         }
       },
       error: (error) => {
