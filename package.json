@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:db": "node scripts/test-connection.js",
+    "init:db": "tsx scripts/init-db.ts",
     "vercel:env": "echo Please add environment variables in Vercel Dashboard",
     "postbuild": "echo Build completed successfully!"
   },

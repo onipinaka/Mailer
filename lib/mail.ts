@@ -175,11 +175,23 @@ export async function sendBulkEmails(
   sent: number;
   failed: number;
   errors: string[];
+  recipientResults: Array<{
+    email: string;
+    name?: string;
+    status: 'sent' | 'failed';
+    errorMessage?: string;
+  }>;
 }> {
   const results = {
     sent: 0,
     failed: 0,
     errors: [] as string[],
+    recipientResults: [] as Array<{
+      email: string;
+      name?: string;
+      status: 'sent' | 'failed';
+      errorMessage?: string;
+    }>,
   };
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -206,16 +218,35 @@ export async function sendBulkEmails(
 
       if (success) {
         results.sent++;
+        results.recipientResults.push({
+          email: recipient.email as string,
+          name: recipient.name as string,
+          status: 'sent',
+        });
       } else {
         results.failed++;
-        results.errors.push(`Failed to send to ${recipient.email}`);
+        const errorMsg = `Failed to send to ${recipient.email}`;
+        results.errors.push(errorMsg);
+        results.recipientResults.push({
+          email: recipient.email as string,
+          name: recipient.name as string,
+          status: 'failed',
+          errorMessage: errorMsg,
+        });
       }
 
       // Rate limiting: wait 100ms between emails to avoid spam filters
       await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       results.failed++;
-      results.errors.push(`Error sending to ${recipient.email}: ${error}`);
+      const errorMsg = `Error sending to ${recipient.email}: ${error}`;
+      results.errors.push(errorMsg);
+      results.recipientResults.push({
+        email: recipient.email as string,
+        name: recipient.name as string,
+        status: 'failed',
+        errorMessage: errorMsg,
+      });
     }
   }
 

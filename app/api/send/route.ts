@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import EmailEvent from '@/models/EmailEvent';
+import RecipientStatus from '@/models/RecipientStatus';
 import Unsubscribe from '@/models/Unsubscribe';
 import { getUserFromRequest } from '@/lib/middleware';
 import { sendBulkEmails, EmailConfig } from '@/lib/mail';
@@ -151,6 +152,20 @@ export async function POST(request: NextRequest) {
       htmlTemplate,
       campaignId
     );
+
+    // Save individual recipient statuses
+    const recipientDocs = result.recipientResults.map(r => ({
+      userId: user._id,
+      campaignId,
+      recipientEmail: r.email,
+      recipientName: r.name || '',
+      status: r.status === 'sent' ? 'delivered' : 'failed',
+      errorMessage: r.errorMessage,
+      sentAt: new Date(),
+      deliveredAt: r.status === 'sent' ? new Date() : undefined,
+    }));
+
+    await RecipientStatus.insertMany(recipientDocs);
 
     // Deduct credits for free users
     if (!user.paidLifetime) {

@@ -1,6 +1,6 @@
 /**
  * Register API Route
- * Handles user registration with email verification
+ * Handles user registration with email verification and security
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -11,10 +11,11 @@ import { generateVerificationToken } from '@/lib/auth';
 import { sendVerificationEmail } from '@/lib/mail';
 import { registerLimiter } from '@/utils/rateLimiter';
 import { z } from 'zod';
+import { isStrongPassword, sanitizeInput } from '@/lib/security';
 
-// Validation schema
+// Validation schema with strong requirements
 const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address').toLowerCase().trim(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
@@ -47,11 +48,23 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validation.data;
 
+    // Validate password strength
+    const passwordCheck = isStrongPassword(password);
+    if (!passwordCheck.valid) {
+      return NextResponse.json(
+        { error: passwordCheck.errors.join('. ') },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize email
+    const sanitizedEmail = sanitizeInput(email.toLowerCase().trim());
+
     // Connect to database
     await dbConnect();
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: sanitizedEmail });
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists' },
@@ -68,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const user = await User.create({
-      email: email.toLowerCase(),
+      email: sanitizedEmail,
       passwordHash,
       verified: false,
       verificationToken,
