@@ -253,11 +253,44 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t bg-gray-50 py-12">
-        <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>&copy; 2024 MailPulse. All rights reserved.</p>
-          <p className="mt-2 text-sm">
-            Secure email marketing platform built with Next.js, MongoDB, and SendGrid
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="font-bold text-lg mb-4">MailPulse</h3>
+              <p className="text-gray-600 text-sm">
+                Professional email marketing platform for businesses of all sizes.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-4">Product</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><Link href="/auth/register" className="hover:text-primary">Get Started</Link></li>
+                <li><Link href="/auth/login" className="hover:text-primary">Login</Link></li>
+                <li><Link href="/#pricing" className="hover:text-primary">Pricing</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><Link href="/terms" className="hover:text-primary">Terms & Conditions</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary">Privacy Policy</Link></li>
+                <li><Link href="/refund" className="hover:text-primary">Refund Policy</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-4">Support</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>Email: support@mailpulse.com</li>
+                <li>Billing: billing@mailpulse.com</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t pt-8 text-center text-gray-600">
+            <p>&copy; 2024 MailPulse. All rights reserved.</p>
+            <p className="mt-2 text-sm">
+              Secure email marketing platform built with Next.js, MongoDB, and SendGrid
+            </p>
+          </div>
         </div>
       </footer>
     </div>

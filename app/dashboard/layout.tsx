@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, LogOut, Send, BarChart, CreditCard } from 'lucide-react';
+import { Mail, LogOut, Send, BarChart, CreditCard, History } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -90,6 +90,12 @@ export default function DashboardLayout({
                     <Button variant="ghost" className="w-full justify-start">
                       <Send className="h-4 w-4 mr-2" />
                       Compose
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/campaigns">
+                    <Button variant="ghost" className="w-full justify-start">
+                      <History className="h-4 w-4 mr-2" />
+                      Campaigns
                     </Button>
                   </Link>
                   <Link href="/dashboard/analytics">
