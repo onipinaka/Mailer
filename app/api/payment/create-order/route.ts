@@ -3,6 +3,9 @@
  * Creates a Razorpay order for lifetime plan purchase
  */
 
+// Force Node.js runtime for Razorpay SDK compatibility
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';

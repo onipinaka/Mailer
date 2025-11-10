@@ -306,7 +306,16 @@ To use Gmail, you need an **App Password**:
 3. Create database user
 4. Get connection string
 
-## 🐛 Troubleshooting
+## � Documentation
+
+- **[Razorpay Integration Guide](RAZORPAY_INTEGRATION.md)** - Complete payment integration documentation
+- **[Razorpay Updates](RAZORPAY_UPDATES.md)** - Recent changes and improvements
+- **[Razorpay Quick Reference](RAZORPAY_QUICKREF.md)** - Quick reference for common tasks
+- **[Vercel Deployment Fix](VERCEL_FIX.md)** - Fix ERR_CONNECTION_CLOSED errors
+- **[Pre-Deploy Checklist](PRE_DEPLOY_CHECKLIST.md)** - Production deployment guide
+- **[Quickstart Guide](QUICKSTART.md)** - Get started quickly
+
+## �🐛 Troubleshooting
 
 ### Email Not Sending
 - Check SMTP credentials
@@ -315,9 +324,11 @@ To use Gmail, you need an **App Password**:
 - Check rate limits
 
 ### Payment Not Working
-- Verify Razorpay keys
-- Check webhook signature
+- **See**: [RAZORPAY_INTEGRATION.md](RAZORPAY_INTEGRATION.md) for complete debugging guide
+- Verify Razorpay keys are correct
+- Check webhook signature verification
 - Ensure HTTPS in production
+- Review Vercel function logs
 
 ### Database Connection Failed
 - Verify MongoDB connection string

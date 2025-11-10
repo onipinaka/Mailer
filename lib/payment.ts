@@ -42,17 +42,21 @@ export async function createOrder(orderData: OrderData) {
       notes: orderData.notes,
     });
 
+    console.log('✅ Razorpay order created:', (order as any).id);
+
     return {
       success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
+      orderId: (order as any).id,
+      amount: (order as any).amount,
+      currency: (order as any).currency,
+      receipt: (order as any).receipt,
     };
-  } catch (error) {
-    console.error('Razorpay order creation error:', error);
+  } catch (error: any) {
+    console.error('❌ Razorpay order creation error:', error);
+    console.error('Error details:', error.error || error.message);
     return {
       success: false,
-      error: 'Failed to create payment order',
+      error: error.error?.description || 'Failed to create payment order',
     };
   }
 }

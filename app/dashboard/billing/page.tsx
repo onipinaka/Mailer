@@ -51,17 +51,80 @@ export default function BillingPage() {
       setProcessingPayment(true);
       setError('');
 
-      const response = await fetch('/api/payment/create-session', {
+      // Create Razorpay order
+      const response = await fetch('/api/payment/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create payment session');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment order');
       }
 
-      const { url } = await response.json();
-      window.location.href = url;
+      const { orderId, amount, currency, keyId } = await response.json();
+
+      // Razorpay Checkout options
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: currency,
+        name: 'MailPulse',
+        description: 'Lifetime Unlimited Plan',
+        order_id: orderId,
+        handler: async function (response: any) {
+          // Payment successful - verify on backend
+          try {
+            const verifyResponse = await fetch('/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            if (verifyResponse.ok) {
+              // Refresh user data
+              await fetchUser();
+              setError('');
+              alert('Payment successful! Your account has been upgraded.');
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (err: any) {
+            setError(err.message || 'Payment verification failed');
+          } finally {
+            setProcessingPayment(false);
+          }
+        },
+        prefill: {
+          email: user?.email,
+        },
+        theme: {
+          color: '#3b82f6',
+        },
+        modal: {
+          ondismiss: function () {
+            setProcessingPayment(false);
+          },
+        },
+      };
+
+      // Load Razorpay script and open checkout
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      };
+      script.onerror = () => {
+        setError('Failed to load payment gateway');
+        setProcessingPayment(false);
+      };
+      document.body.appendChild(script);
     } catch (err: any) {
       setError(err.message || 'Failed to process payment');
       setProcessingPayment(false);
