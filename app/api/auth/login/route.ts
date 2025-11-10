@@ -77,12 +77,12 @@ export async function POST(request: NextRequest) {
 
     // Generate tokens
     const accessToken = generateAccessToken({
-      userId: user._id.toString(),
+      userId: (user._id as any).toString(),
       email: user.email,
     });
 
     const refreshToken = generateRefreshToken({
-      userId: user._id.toString(),
+      userId: (user._id as any).toString(),
       email: user.email,
     });
 

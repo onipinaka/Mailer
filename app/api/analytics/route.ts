@@ -8,6 +8,8 @@ import dbConnect from '@/lib/db';
 import EmailEvent from '@/models/EmailEvent';
 import { getUserFromRequest } from '@/lib/middleware';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user

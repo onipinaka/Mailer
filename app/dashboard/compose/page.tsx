@@ -41,8 +41,8 @@ export default function ComposePage() {
       header: true,
       complete: (results) => {
         setCsvData(results.data);
-        if (results.data.length > 0) {
-          setCsvHeaders(Object.keys(results.data[0]));
+        if (results.data.length > 0 && results.data[0]) {
+          setCsvHeaders(Object.keys(results.data[0] as Record<string, any>));
         }
       },
       error: (error) => {

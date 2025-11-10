@@ -71,9 +71,8 @@ const EmailEventSchema = new Schema<IEmailEvent>(
   }
 );
 
-// Indexes for faster queries
+// Indexes for faster queries (campaignId index already created by unique: true)
 EmailEventSchema.index({ userId: 1, createdAt: -1 });
-EmailEventSchema.index({ campaignId: 1 });
 
 const EmailEvent: Model<IEmailEvent> =
   mongoose.models.EmailEvent || mongoose.model<IEmailEvent>('EmailEvent', EmailEventSchema);

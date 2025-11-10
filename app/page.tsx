@@ -119,9 +119,10 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="container mx-auto px-4 py-20 bg-gray-50 -mx-4">
-        <h2 className="text-4xl font-bold text-center mb-12">Simple, Transparent Pricing</h2>
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <section id="pricing" className="w-full px-4 py-20 bg-gray-50">
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-12">Simple, Transparent Pricing</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <Card className="border-2">
             <CardHeader>
               <CardTitle className="text-2xl">Free Trial</CardTitle>
@@ -190,6 +191,7 @@ export default function HomePage() {
               </Link>
             </CardContent>
           </Card>
+          </div>
         </div>
       </section>
 

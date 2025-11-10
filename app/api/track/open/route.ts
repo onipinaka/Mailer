@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import EmailEvent from '@/models/EmailEvent';
 
+export const dynamic = 'force-dynamic';
+
 // 1x1 transparent PNG pixel
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',

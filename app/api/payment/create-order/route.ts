@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       currency,
       receipt: `receipt_${user._id}_${Date.now()}`,
       notes: {
-        userId: user._id.toString(),
+        userId: (user._id as any).toString(),
         email: user.email,
       },
     });
