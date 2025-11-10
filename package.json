@@ -28,8 +28,6 @@
     "@tiptap/starter-kit": "^2.1.13",
     "@tiptap/pm": "^2.1.13",
     "recharts": "^2.10.3",
-    "dompurify": "^3.0.6",
-    "isomorphic-dompurify": "^2.9.0",
     "zod": "^3.22.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",

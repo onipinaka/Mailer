@@ -1,29 +1,39 @@
 /**
  * HTML Sanitization Utility
- * Uses DOMPurify to sanitize HTML content before sending emails
+ * Lightweight HTML sanitizer for serverless environments
  * Prevents XSS attacks by removing malicious scripts
  */
 
-import DOMPurify from 'isomorphic-dompurify';
-
 /**
  * Sanitizes HTML content to prevent XSS attacks
- * Allows only safe HTML tags and attributes
+ * Uses regex-based approach for serverless compatibility
  */
 export function sanitizeHTML(dirty: string): string {
-  const clean = DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
-      'div', 'span', 'blockquote', 'pre', 'code'
-    ],
-    ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'style', 'class', 'id', 'target', 'rel',
-      'width', 'height', 'align', 'border', 'cellpadding', 'cellspacing'
-    ],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+  if (!dirty) return '';
+  
+  let clean = dirty;
+  
+  // Remove script tags and their content
+  clean = clean.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  
+  // Remove event handlers (onclick, onerror, etc.)
+  clean = clean.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+  clean = clean.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
+  
+  // Remove javascript: protocol
+  clean = clean.replace(/javascript:/gi, '');
+  
+  // Remove data: URIs (except images)
+  clean = clean.replace(/data:(?!image\/)[^,]*,/gi, '');
+  
+  // Remove dangerous tags
+  const dangerousTags = ['iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea', 'select', 'meta', 'link', 'style', 'base'];
+  dangerousTags.forEach(tag => {
+    const regex = new RegExp(`<${tag}\\b[^<]*(?:(?!<\\/${tag}>)<[^<]*)*<\\/${tag}>`, 'gi');
+    clean = clean.replace(regex, '');
+    clean = clean.replace(new RegExp(`<${tag}[^>]*>`, 'gi'), '');
   });
-
+  
   return clean;
 }
 
