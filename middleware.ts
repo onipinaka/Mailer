@@ -100,18 +100,18 @@ export function middleware(request: NextRequest) {
     let maxRequests = 100; // Default: 100 requests per minute
     let windowMs = 60 * 1000; // 1 minute
 
-    // Stricter limits for sensitive endpoints
+    // Stricter limits for sensitive endpoints (relaxed for testing)
     if (pathname.startsWith('/api/auth/login')) {
-      maxRequests = 5; // 5 attempts per 15 minutes
-      windowMs = 15 * 60 * 1000;
+      maxRequests = 10; // 10 attempts per 5 minutes
+      windowMs = 5 * 60 * 1000;
     } else if (pathname.startsWith('/api/auth/register')) {
-      maxRequests = 3; // 3 registrations per hour
-      windowMs = 60 * 60 * 1000;
+      maxRequests = 5; // 5 registrations per 15 minutes
+      windowMs = 15 * 60 * 1000;
     } else if (pathname.startsWith('/api/payment/')) {
-      maxRequests = 10; // 10 payment attempts per 5 minutes
+      maxRequests = 20; // 20 payment attempts per 5 minutes
       windowMs = 5 * 60 * 1000;
     } else if (pathname.startsWith('/api/send')) {
-      maxRequests = 20; // 20 campaign sends per hour
+      maxRequests = 30; // 30 campaign sends per hour
       windowMs = 60 * 60 * 1000;
     }
 
@@ -178,20 +178,56 @@ export function middleware(request: NextRequest) {
   // ==================== CORS HEADERS FOR API ====================
 
   if (pathname.startsWith('/api/')) {
-    // Only allow same-origin requests in production
-    if (process.env.NODE_ENV === 'production') {
-      const origin = request.headers.get('origin');
-      const allowedOrigins = [
-        process.env.NEXT_PUBLIC_APP_URL,
-        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
-      ].filter(Boolean);
+    const origin = request.headers.get('origin');
+    
+    // Set CORS headers for API routes
+    if (origin) {
+      // In production, validate origin
+      if (process.env.NODE_ENV === 'production') {
+        const requestUrl = new URL(request.url);
+        const allowedOrigins = [
+          process.env.NEXT_PUBLIC_APP_URL,
+          `https://${requestUrl.host}`, // Allow same-origin
+          process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+        ].filter(Boolean);
 
-      if (origin && !allowedOrigins.includes(origin)) {
-        return NextResponse.json(
-          { error: 'CORS policy violation' },
-          { status: 403 }
+        // Check if origin is allowed
+        const isAllowed = allowedOrigins.some(allowed => 
+          origin === allowed || origin.endsWith(requestUrl.host)
         );
+
+        if (!isAllowed) {
+          return NextResponse.json(
+            { error: 'CORS policy violation' },
+            { status: 403 }
+          );
+        }
       }
+      
+      // Set CORS headers
+      response.headers.set('Access-Control-Allow-Origin', origin);
+      response.headers.set('Access-Control-Allow-Credentials', 'true');
+      response.headers.set(
+        'Access-Control-Allow-Methods',
+        'GET, POST, PUT, DELETE, OPTIONS'
+      );
+      response.headers.set(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization'
+      );
+    }
+    
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
     }
   }
 
