@@ -7,6 +7,8 @@ import Integration from '@/models/Integration';
 import { decrypt } from '@/lib/security';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 // POST - Create and schedule social media post
 export async function POST(request: NextRequest) {
   try {

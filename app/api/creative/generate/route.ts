@@ -6,6 +6,8 @@ import OpenAI from 'openai';
 import AIModel from '@/models/AIModel';
 import { decrypt } from '@/lib/security';
 
+export const dynamic = 'force-dynamic';
+
 // POST - Generate creative assets (logos, banners, images)
 export async function POST(request: NextRequest) {
   try {

@@ -6,6 +6,8 @@ import { decrypt } from '@/lib/security';
 import WhatsAppCredential from '@/models/WhatsAppCredential';
 import twilio from 'twilio';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();

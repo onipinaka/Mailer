@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import dbConnect from '@/lib/db';
 import { verifyAccessToken } from '@/lib/auth';
-import RecipientStatus from '@/models/RecipientStatus';
 import SocialPost from '@/models/SocialPost';
 import AdCampaign from '@/models/AdCampaign';
 import Lead from '@/models/Lead';
+import RecipientStatus from '@/models/RecipientStatus';
+
+export const dynamic = 'force-dynamic';
 
 // GET - Aggregate analytics across all channels
 export async function GET(request: NextRequest) {

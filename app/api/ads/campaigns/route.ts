@@ -6,6 +6,8 @@ import AdCampaign from '@/models/AdCampaign';
 import Integration from '@/models/Integration';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 // POST - Create ad campaign
 export async function POST(request: NextRequest) {
   try {

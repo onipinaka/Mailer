@@ -5,6 +5,8 @@ import { verifyAccessToken } from '@/lib/auth';
 import Chatbot from '@/models/Chatbot';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 // POST - Create chatbot
 export async function POST(request: NextRequest) {
   try {
