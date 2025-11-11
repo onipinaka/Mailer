@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { provider, apiKey, model, label } = body || {};
+    const { provider, apiKey, modelName, label } = body || {};
 
     if (!provider || !apiKey) {
       return NextResponse.json({ error: 'provider and apiKey are required' }, { status: 400 });
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
     const aiModel = new AIModel({
       userId: new mongoose.Types.ObjectId(payload.userId),
       provider,
-      label: label || `${provider} - ${model || 'default'}`,
-      model,
+      label: label || `${provider} - ${modelName || 'default'}`,
+      modelName,
       encryptedApiKey: encrypted,
     });
 
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       id: aiModel._id,
       provider: aiModel.provider,
       label: aiModel.label,
-      model: aiModel.model,
+      modelName: aiModel.modelName,
       createdAt: aiModel.createdAt,
     });
   } catch (err) {
@@ -61,17 +61,19 @@ export async function GET(request: NextRequest) {
     const payload = verifyAccessToken(token);
     if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const models = await AIModel.find({ userId: payload.userId }).sort({ createdAt: -1 }).lean();
+    const aiModels = await AIModel.find({ userId: payload.userId }).sort({ createdAt: -1 });
 
-    const safe = models.map(m => ({
-      id: m._id,
-      provider: m.provider,
-      label: m.label,
-      model: m.model,
-      createdAt: m.createdAt,
+    // Return with masked API keys
+    const sanitizedModels = aiModels.map((model) => ({
+      _id: model._id,
+      provider: model.provider,
+      label: model.label,
+      modelName: model.modelName,
+      apiKey: '••••••••', // Masked
+      createdAt: model.createdAt,
     }));
 
-    return NextResponse.json({ models: safe });
+    return NextResponse.json({ models: sanitizedModels });
   } catch (err) {
     console.error('Error listing AI models', err);
     return NextResponse.json({ error: 'Failed to list AI models' }, { status: 500 });

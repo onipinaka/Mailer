@@ -44,7 +44,7 @@ export default function SettingsPage() {
   
   // AI state
   const [aiModels, setAiModels] = useState<any[]>([]);
-  const [aiForm, setAiForm] = useState({ provider: 'openai', apiKey: '', model: 'gpt-4o-mini', label: '' });
+  const [aiForm, setAiForm] = useState({ provider: 'openai', apiKey: '', modelName: 'gpt-4o-mini', label: '' });
   
   const [showPassword, setShowPassword] = useState(false);
 
@@ -196,7 +196,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error('Failed to save');
 
       setSuccess('AI model saved!');
-      setAiForm({ provider: 'openai', apiKey: '', model: 'gpt-4o-mini', label: '' });
+      setAiForm({ provider: 'openai', apiKey: '', modelName: 'gpt-4o-mini', label: '' });
       await fetchAll();
     } catch (err: any) {
       setError(err.message);
@@ -554,10 +554,10 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Model</Label>
+                    <Label>Model Name</Label>
                     <Input
-                      value={aiForm.model}
-                      onChange={(e) => setAiForm({ ...aiForm, model: e.target.value })}
+                      value={aiForm.modelName}
+                      onChange={(e) => setAiForm({ ...aiForm, modelName: e.target.value })}
                       placeholder="gpt-4o-mini"
                     />
                   </div>
@@ -601,8 +601,8 @@ export default function SettingsPage() {
                   {aiModels.map((model) => (
                     <div key={model.id} className="flex justify-between items-center p-3 border rounded">
                       <div>
-                        <div className="font-medium">{model.label || `${model.provider} - ${model.model}`}</div>
-                        <div className="text-sm text-gray-500">{model.provider} • {model.model}</div>
+                        <div className="font-medium">{model.label || `${model.provider} - ${model.modelName}`}</div>
+                        <div className="text-sm text-gray-500">{model.provider} • {model.modelName}</div>
                       </div>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete('ai', model.id)}>
                         <Trash2 className="h-4 w-4 text-red-600" />

@@ -9,7 +9,7 @@ export interface IAIModel extends Document {
   userId: mongoose.Types.ObjectId;
   provider: 'openai' | 'anthropic' | 'google' | 'custom';
   label?: string;
-  model?: string; // e.g., 'gpt-4', 'claude-3-opus'
+  modelName?: string; // e.g., 'gpt-4', 'claude-3-opus'
   encryptedApiKey: string;
   createdAt: Date;
   updatedAt: Date;
@@ -33,7 +33,7 @@ const AIModelSchema = new Schema<IAIModel>(
       type: String,
       trim: true,
     },
-    model: {
+    modelName: {
       type: String,
       trim: true,
     },
