@@ -9,11 +9,13 @@ import User from '@/models/User';
 import EmailEvent from '@/models/EmailEvent';
 import RecipientStatus from '@/models/RecipientStatus';
 import Unsubscribe from '@/models/Unsubscribe';
+import EmailCredential from '@/models/EmailCredential';
 import { getUserFromRequest } from '@/lib/middleware';
 import { sendBulkEmails, EmailConfig } from '@/lib/mail';
 import { isValidEmail } from '@/utils/sanitizeHTML';
 import { validatePlaceholders, PlaceholderData } from '@/utils/replacePlaceholders';
 import { sendEmailLimiter } from '@/utils/rateLimiter';
+import { decrypt } from '@/lib/security';
 import { z } from 'zod';
 
 const sendCampaignSchema = z.object({
@@ -22,6 +24,7 @@ const sendCampaignSchema = z.object({
   recipients: z.array(z.record(z.any())).min(1, 'At least one recipient is required'),
   sendMethod: z.enum(['gmail', 'smtp', 'sendgrid']),
   config: z.object({
+    credentialId: z.string().optional(),
     gmail: z.object({
       user: z.string().email(),
       password: z.string(),
@@ -135,11 +138,67 @@ export async function POST(request: NextRequest) {
     }
 
     // Create email config
-    const emailConfig: EmailConfig = {
+    let emailConfig: EmailConfig = {
       method: sendMethod,
-      ...(sendMethod === 'gmail' && config?.gmail ? { gmail: config.gmail } : {}),
-      ...(sendMethod === 'smtp' && config?.smtp ? { smtp: config.smtp } : {}),
     };
+
+    // If credentialId is provided, fetch and decrypt the saved credential
+    if (config?.credentialId) {
+      const credential = await EmailCredential.findOne({
+        _id: config.credentialId,
+        userId: authUser.userId,
+      });
+
+      if (!credential) {
+        return NextResponse.json(
+          { error: 'Saved credential not found' },
+          { status: 404 }
+        );
+      }
+
+      // Decrypt the password
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return NextResponse.json(
+          { error: 'Server configuration error' },
+          { status: 500 }
+        );
+      }
+
+      try {
+        const decryptedPassword = decrypt(credential.encryptedPassword, jwtSecret);
+
+        if (sendMethod === 'gmail' && credential.provider === 'gmail') {
+          emailConfig.gmail = {
+            user: credential.email,
+            password: decryptedPassword,
+          };
+        } else if (sendMethod === 'smtp' && credential.provider === 'smtp') {
+          // For SMTP, we need additional config from the credential
+          // For now, assume Gmail SMTP settings
+          emailConfig.smtp = {
+            host: 'smtp.gmail.com',
+            port: 587,
+            user: credential.email,
+            password: decryptedPassword,
+            secure: false,
+          };
+        }
+      } catch (err) {
+        console.error('Failed to decrypt credential:', err);
+        return NextResponse.json(
+          { error: 'Failed to decrypt saved credential' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Use manually provided credentials
+      if (sendMethod === 'gmail' && config?.gmail) {
+        emailConfig.gmail = config.gmail;
+      } else if (sendMethod === 'smtp' && config?.smtp) {
+        emailConfig.smtp = config.smtp;
+      }
+    }
 
     // Generate campaign ID
     const campaignId = `camp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

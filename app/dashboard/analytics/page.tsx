@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
   }
 
   // Prepare chart data
-  const campaignChartData = data.campaigns.map(c => ({
+  const campaignChartData = (data.campaigns || []).map(c => ({
     name: c.subject.substring(0, 20) + (c.subject.length > 20 ? '...' : ''),
     sent: c.sent,
     delivered: c.delivered,
@@ -107,15 +107,15 @@ export default function AnalyticsPage() {
   }));
 
   const pieData = [
-    { name: 'Delivered', value: data.totalDelivered, color: '#10b981' },
-    { name: 'Opened', value: data.totalOpened, color: '#8b5cf6' },
-    { name: 'Bounced', value: data.totalBounced, color: '#ef4444' },
-    { name: 'Failed', value: data.totalFailed, color: '#f97316' },
+    { name: 'Delivered', value: data.totalDelivered ?? 0, color: '#10b981' },
+    { name: 'Opened', value: data.totalOpened ?? 0, color: '#8b5cf6' },
+    { name: 'Bounced', value: data.totalBounced ?? 0, color: '#ef4444' },
+    { name: 'Failed', value: data.totalFailed ?? 0, color: '#f97316' },
   ];
 
   const performanceData = [
-    { name: 'Open Rate', value: data.averageOpenRate },
-    { name: 'Delivery Rate', value: data.averageDeliveryRate },
+    { name: 'Open Rate', value: data.averageOpenRate ?? 0 },
+    { name: 'Delivery Rate', value: data.averageDeliveryRate ?? 0 },
   ];
 
   return (
@@ -156,7 +156,7 @@ export default function AnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{data.totalSent.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-green-600">{(data.totalSent ?? 0).toLocaleString()}</div>
             <p className="text-xs text-gray-500 mt-1">Emails delivered to recipients</p>
           </CardContent>
         </Card>
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-600">{data.averageOpenRate.toFixed(1)}%</div>
+            <div className="text-3xl font-bold text-purple-600">{(data.averageOpenRate ?? 0).toFixed(1)}%</div>
             <p className="text-xs text-gray-500 mt-1">Recipients who opened emails</p>
           </CardContent>
         </Card>
@@ -182,7 +182,7 @@ export default function AnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-teal-600">{data.averageDeliveryRate.toFixed(1)}%</div>
+            <div className="text-3xl font-bold text-teal-600">{(data.averageDeliveryRate ?? 0).toFixed(1)}%</div>
             <p className="text-xs text-gray-500 mt-1">Successfully delivered</p>
           </CardContent>
         </Card>
@@ -310,14 +310,14 @@ export default function AnalyticsPage() {
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <span className="text-sm font-medium text-green-900">Delivered</span>
                     </div>
-                    <span className="text-xl font-bold text-green-600">{data.totalDelivered.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-green-600">{(data.totalDelivered ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
                     <div className="flex items-center gap-2">
                       <Eye className="h-5 w-5 text-purple-600" />
                       <span className="text-sm font-medium text-purple-900">Opened</span>
                     </div>
-                    <span className="text-xl font-bold text-purple-600">{data.totalOpened.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-purple-600">{(data.totalOpened ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
                 
@@ -327,14 +327,14 @@ export default function AnalyticsPage() {
                       <XCircle className="h-5 w-5 text-red-600" />
                       <span className="text-sm font-medium text-red-900">Bounced</span>
                     </div>
-                    <span className="text-xl font-bold text-red-600">{data.totalBounced.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-red-600">{(data.totalBounced ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
                     <div className="flex items-center gap-2">
                       <XCircle className="h-5 w-5 text-orange-600" />
                       <span className="text-sm font-medium text-orange-900">Failed</span>
                     </div>
-                    <span className="text-xl font-bold text-orange-600">{data.totalFailed.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-orange-600">{(data.totalFailed ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
                 
@@ -344,7 +344,7 @@ export default function AnalyticsPage() {
                       <Mail className="h-5 w-5 text-blue-600" />
                       <span className="text-sm font-medium text-blue-900">Total Sent</span>
                     </div>
-                    <span className="text-xl font-bold text-blue-600">{data.totalSent.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-blue-600">{(data.totalSent ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                     <div className="flex items-center gap-2">

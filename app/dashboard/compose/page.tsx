@@ -1,15 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectItem } from '@/components/ui/select';
 import Papa from 'papaparse';
-import { Upload, Send, CheckCircle } from 'lucide-react';
+import { Upload, Send, CheckCircle, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+interface SavedCredential {
+  id: string;
+  provider: string;
+  email: string;
+}
 
 export default function ComposePage() {
+  const router = useRouter();
   const [subject, setSubject] = useState('');
   const [htmlTemplate, setHtmlTemplate] = useState('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -17,7 +26,12 @@ export default function ComposePage() {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [sendMethod, setSendMethod] = useState<'sendgrid' | 'gmail' | 'smtp'>('sendgrid');
   
-  // Gmail/SMTP config
+  // Saved credentials
+  const [savedCredentials, setSavedCredentials] = useState<SavedCredential[]>([]);
+  const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
+  const [useManualCredentials, setUseManualCredentials] = useState(false);
+  
+  // Gmail/SMTP config (for manual entry)
   const [gmailUser, setGmailUser] = useState('');
   const [gmailPassword, setGmailPassword] = useState('');
   const [smtpHost, setSmtpHost] = useState('');
@@ -30,6 +44,22 @@ export default function ComposePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [result, setResult] = useState<any>(null);
+
+  useEffect(() => {
+    fetchSavedCredentials();
+  }, []);
+
+  const fetchSavedCredentials = async () => {
+    try {
+      const response = await fetch('/api/settings/email-credentials');
+      if (response.ok) {
+        const data = await response.json();
+        setSavedCredentials(data.credentials || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch saved credentials:', err);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,14 +95,27 @@ export default function ComposePage() {
       return;
     }
 
-    if (sendMethod === 'gmail' && (!gmailUser || !gmailPassword)) {
-      setError('Please provide Gmail credentials');
-      return;
+    // Check credentials
+    if (sendMethod === 'gmail') {
+      if (!useManualCredentials && !selectedCredentialId) {
+        setError('Please select a saved account or enter credentials manually');
+        return;
+      }
+      if (useManualCredentials && (!gmailUser || !gmailPassword)) {
+        setError('Please provide Gmail credentials');
+        return;
+      }
     }
 
-    if (sendMethod === 'smtp' && (!smtpHost || !smtpUser || !smtpPassword)) {
-      setError('Please provide SMTP configuration');
-      return;
+    if (sendMethod === 'smtp') {
+      if (!useManualCredentials && !selectedCredentialId) {
+        setError('Please select a saved account or enter credentials manually');
+        return;
+      }
+      if (useManualCredentials && (!smtpHost || !smtpUser || !smtpPassword)) {
+        setError('Please provide SMTP configuration');
+        return;
+      }
     }
 
     setLoading(true);
@@ -81,15 +124,23 @@ export default function ComposePage() {
       const config: any = {};
       
       if (sendMethod === 'gmail') {
-        config.gmail = { user: gmailUser, password: gmailPassword };
+        if (useManualCredentials) {
+          config.gmail = { user: gmailUser, password: gmailPassword };
+        } else {
+          config.credentialId = selectedCredentialId;
+        }
       } else if (sendMethod === 'smtp') {
-        config.smtp = {
-          host: smtpHost,
-          port: parseInt(smtpPort),
-          user: smtpUser,
-          password: smtpPassword,
-          secure: smtpSecure,
-        };
+        if (useManualCredentials) {
+          config.smtp = {
+            host: smtpHost,
+            port: parseInt(smtpPort),
+            user: smtpUser,
+            password: smtpPassword,
+            secure: smtpSecure,
+          };
+        } else {
+          config.credentialId = selectedCredentialId;
+        }
       }
 
       const response = await fetch('/api/send', {
@@ -243,29 +294,88 @@ export default function ComposePage() {
 
           {sendMethod === 'gmail' && (
             <div className="space-y-4 border-t pt-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Gmail Address</label>
-                <Input
-                  type="email"
-                  value={gmailUser}
-                  onChange={(e) => setGmailUser(e.target.value)}
-                  placeholder="your-email@gmail.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">App Password</label>
-                <Input
-                  type="password"
-                  value={gmailPassword}
-                  onChange={(e) => setGmailPassword(e.target.value)}
-                  placeholder="••••••••••••••••"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  <a href="https://support.google.com/accounts/answer/185833" target="_blank" className="text-primary hover:underline">
-                    How to create app password
-                  </a>
-                </p>
-              </div>
+              {savedCredentials.filter(c => c.provider === 'gmail').length > 0 && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Select Saved Gmail Account
+                    </label>
+                    <Select
+                      value={selectedCredentialId}
+                      onChange={(e) => {
+                        setSelectedCredentialId(e.target.value);
+                        setUseManualCredentials(e.target.value === 'manual');
+                      }}
+                    >
+                      <SelectItem value="">-- Choose an account --</SelectItem>
+                      {savedCredentials
+                        .filter(c => c.provider === 'gmail')
+                        .map(cred => (
+                          <SelectItem key={cred.id} value={cred.id}>
+                            {cred.email}
+                          </SelectItem>
+                        ))}
+                      <SelectItem value="manual">Enter credentials manually</SelectItem>
+                    </Select>
+                  </div>
+                  
+                  <div className="text-center text-sm text-gray-500">
+                    <span>or </span>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/dashboard/settings')}
+                      className="text-primary hover:underline inline-flex items-center"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add new account in Settings
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {(useManualCredentials || savedCredentials.filter(c => c.provider === 'gmail').length === 0) && (
+                <>
+                  {savedCredentials.filter(c => c.provider === 'gmail').length === 0 && (
+                    <Alert>
+                      <AlertDescription>
+                        No saved Gmail accounts. You can{' '}
+                        <button
+                          type="button"
+                          onClick={() => router.push('/dashboard/settings')}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          add one in Settings
+                        </button>
+                        {' '}or enter credentials below.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Gmail Address</label>
+                    <Input
+                      type="email"
+                      value={gmailUser}
+                      onChange={(e) => setGmailUser(e.target.value)}
+                      placeholder="your-email@gmail.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">App Password</label>
+                    <Input
+                      type="password"
+                      value={gmailPassword}
+                      onChange={(e) => setGmailPassword(e.target.value)}
+                      placeholder="••••••••••••••••"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      <a href="https://support.google.com/accounts/answer/185833" target="_blank" className="text-primary hover:underline">
+                        How to create app password
+                      </a>
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 

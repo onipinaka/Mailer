@@ -41,22 +41,25 @@ export async function GET(request: NextRequest) {
     );
 
     // Calculate rates
-    const openRate = totals.delivered > 0 
-      ? ((totals.opened / totals.delivered) * 100).toFixed(2) 
-      : '0.00';
+    const averageOpenRate = totals.delivered > 0 
+      ? (totals.opened / totals.delivered) * 100
+      : 0;
     
-    const bounceRate = totals.sent > 0
-      ? ((totals.bounced / totals.sent) * 100).toFixed(2)
-      : '0.00';
+    const averageDeliveryRate = totals.sent > 0
+      ? (totals.delivered / totals.sent) * 100
+      : 0;
 
     return NextResponse.json(
       {
         success: true,
-        totals: {
-          ...totals,
-          openRate: parseFloat(openRate),
-          bounceRate: parseFloat(bounceRate),
-        },
+        totalCampaigns: campaigns.length,
+        totalSent: totals.sent,
+        totalDelivered: totals.delivered,
+        totalOpened: totals.opened,
+        totalBounced: totals.bounced,
+        totalFailed: totals.failed,
+        averageOpenRate,
+        averageDeliveryRate,
         campaigns: campaigns.map(c => ({
           campaignId: c.campaignId,
           subject: c.subject,

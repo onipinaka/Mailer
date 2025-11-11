@@ -179,44 +179,64 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin');
-    
+
     // Set CORS headers for API routes
     if (origin) {
-      // In production, validate origin
-      if (process.env.NODE_ENV === 'production') {
-        const requestUrl = new URL(request.url);
-        const allowedOrigins = [
-          process.env.NEXT_PUBLIC_APP_URL,
-          `https://${requestUrl.host}`, // Allow same-origin
-          process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
-        ].filter(Boolean);
+      // Normalize incoming origin and allowed origins
+      const requestUrl = new URL(request.url);
 
-        // Check if origin is allowed
-        const isAllowed = allowedOrigins.some(allowed => 
-          origin === allowed || origin.endsWith(requestUrl.host)
-        );
-
-        if (!isAllowed) {
-          return NextResponse.json(
-            { error: 'CORS policy violation' },
-            { status: 403 }
-          );
+      const normalize = (u: string) => {
+        try {
+          return new URL(u).origin;
+        } catch {
+          // if no protocol provided, assume https
+          try {
+            return new URL(`https://${u}`).origin;
+          } catch {
+            return u;
+          }
         }
+      };
+
+      const allowedOrigins = [
+        process.env.NEXT_PUBLIC_APP_URL,
+        `https://${requestUrl.host}`, // same origin by default
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+      ]
+        .filter(Boolean)
+        .map(v => normalize(v as string));
+
+      const normalizedOrigin = normalize(origin);
+
+      // In production, validate origin strictly; in development allow local origins
+      let isAllowed = false;
+
+      if (process.env.NODE_ENV === 'production') {
+        // Allow if normalized origin exactly matches any allowed origin
+        if (allowedOrigins.includes(normalizedOrigin)) {
+          isAllowed = true;
+        }
+
+        // Fallback: allow same-host origins (handles subdomains and Vercel aliases)
+        if (!isAllowed && normalizedOrigin.endsWith(requestUrl.host)) {
+          isAllowed = true;
+        }
+      } else {
+        // In non-production, be permissive to aid testing (but still expose CORS headers)
+        isAllowed = true;
       }
-      
+
+      if (!isAllowed) {
+        return NextResponse.json({ error: 'CORS policy violation' }, { status: 403 });
+      }
+
       // Set CORS headers
       response.headers.set('Access-Control-Allow-Origin', origin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
-      response.headers.set(
-        'Access-Control-Allow-Methods',
-        'GET, POST, PUT, DELETE, OPTIONS'
-      );
-      response.headers.set(
-        'Access-Control-Allow-Headers',
-        'Content-Type, Authorization'
-      );
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
-    
+
     // Handle preflight requests
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, {
