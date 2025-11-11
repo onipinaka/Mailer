@@ -22,6 +22,7 @@ import {
   Eye,
   MousePointer,
   Settings,
+  Clock,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -138,6 +139,14 @@ export default function DashboardPage() {
       color: 'bg-violet-500',
       href: '/dashboard/integrations',
       features: ['Meta', 'Google', 'Mailchimp', 'HubSpot', 'Salesforce']
+    },
+    {
+      title: 'Background Jobs',
+      description: 'Monitor campaign progress',
+      icon: Clock,
+      color: 'bg-slate-500',
+      href: '/dashboard/jobs',
+      features: ['Email Campaigns', 'Lead Generation', 'Status Tracking', 'Progress']
     },
     {
       title: 'Settings',

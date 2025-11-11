@@ -34,6 +34,7 @@ export default function ComposeNewPage() {
   const [emailBody, setEmailBody] = useState('');
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<any[]>([]);
+  const [sendDelay, setSendDelay] = useState(0); // Delay in seconds between emails
 
   // SMS/WhatsApp fields
   const [messageBody, setMessageBody] = useState('');
@@ -174,7 +175,8 @@ export default function ComposeNewPage() {
     setSuccess('');
 
     try {
-      const res = await fetch('/api/send', {
+      // Create background job for email campaign
+      const res = await fetch('/api/campaigns/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,19 +184,20 @@ export default function ComposeNewPage() {
           html: emailBody,
           recipients: csvData,
           credentialId: selectedEmailCred,
+          sendDelay, // Custom timing gap
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to send emails');
+      if (!res.ok) throw new Error('Failed to start email campaign');
 
       const data = await res.json();
-      setSuccess(`Sent ${data.sent} emails successfully!`);
+      setSuccess(`Email campaign started! Job ID: ${data.jobId}. Check Jobs page for progress.`);
       setSubject('');
       setEmailBody('');
       setCsvData([]);
       setCsvFile(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to send emails');
+      setError(err.message || 'Failed to start email campaign');
     } finally {
       setLoading(false);
     }
@@ -218,26 +221,25 @@ export default function ComposeNewPage() {
     const recipients = recipientList.split('\n').map((p) => p.trim()).filter(Boolean);
 
     try {
-      const results = await Promise.all(
-        recipients.map((to) =>
-          fetch('/api/sms/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to,
-              body: messageBody,
-              credentialId: selectedSmsCred,
-            }),
-          })
-        )
-      );
+      const res = await fetch('/api/campaigns/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: messageBody,
+          recipients,
+          credentialId: selectedSmsCred,
+          sendDelay: 1, // 1 second delay between SMS
+        }),
+      });
 
-      const successCount = results.filter((r) => r.ok).length;
-      setSuccess(`Sent ${successCount}/${recipients.length} SMS successfully!`);
+      if (!res.ok) throw new Error('Failed to start SMS campaign');
+
+      const data = await res.json();
+      setSuccess(`SMS campaign started! Job ID: ${data.jobId}. Check Jobs page for progress.`);
       setMessageBody('');
       setRecipientList('');
     } catch (err: any) {
-      setError(err.message || 'Failed to send SMS');
+      setError(err.message || 'Failed to start SMS campaign');
     } finally {
       setLoading(false);
     }
@@ -261,26 +263,25 @@ export default function ComposeNewPage() {
     const recipients = recipientList.split('\n').map((p) => p.trim()).filter(Boolean);
 
     try {
-      const results = await Promise.all(
-        recipients.map((to) =>
-          fetch('/api/whatsapp/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to,
-              body: messageBody,
-              credentialId: selectedWhatsappCred,
-            }),
-          })
-        )
-      );
+      const res = await fetch('/api/campaigns/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: messageBody,
+          recipients,
+          credentialId: selectedWhatsappCred,
+          sendDelay: 1, // 1 second delay between WhatsApp messages
+        }),
+      });
 
-      const successCount = results.filter((r) => r.ok).length;
-      setSuccess(`Sent ${successCount}/${recipients.length} WhatsApp messages successfully!`);
+      if (!res.ok) throw new Error('Failed to start WhatsApp campaign');
+
+      const data = await res.json();
+      setSuccess(`WhatsApp campaign started! Job ID: ${data.jobId}. Check Jobs page for progress.`);
       setMessageBody('');
       setRecipientList('');
     } catch (err: any) {
-      setError(err.message || 'Failed to send WhatsApp messages');
+      setError(err.message || 'Failed to start WhatsApp campaign');
     } finally {
       setLoading(false);
     }
@@ -435,6 +436,20 @@ export default function ComposeNewPage() {
                 {csvData.length > 0 && (
                   <p className="text-sm text-green-600">✓ Loaded {csvData.length} recipients</p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label>Send Delay (seconds between each email)</Label>
+                <Input
+                  type="number"
+                  value={sendDelay}
+                  onChange={(e) => setSendDelay(parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                  min="0"
+                  max="60"
+                />
+                <p className="text-sm text-gray-500">
+                  Add delay to avoid spam filters. Recommended: 2-5 seconds. Campaign will run in background.
+                </p>
               </div>
             </CardContent>
           </Card>
