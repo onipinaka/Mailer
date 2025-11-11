@@ -13,7 +13,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Mail className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-gray-900">MailPulse</span>
+            <span className="text-2xl font-bold text-gray-900">AI Marketer</span>
           </div>
           <nav className="hidden md:flex space-x-6">
             <Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link>
@@ -34,11 +34,11 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-          Email Marketing Made <span className="text-primary">Simple</span>
+          AI-Powered Marketing <span className="text-primary">Automation</span>
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Send personalized bulk emails using Gmail, your own SMTP server, or SendGrid.
-          Get 100 free credits to start, then unlock unlimited emails for life.
+          Complete AI marketing system with email, SMS, WhatsApp campaigns, lead generation, 
+          AI content creation, and automation workflows—all in one platform.
         </p>
         <div className="flex justify-center space-x-4">
           <Link href="/auth/register">
@@ -64,27 +64,27 @@ export default function HomePage() {
           <Card>
             <CardHeader>
               <Zap className="h-12 w-12 text-primary mb-4" />
-              <CardTitle>Multiple Send Methods</CardTitle>
+              <CardTitle>AI Content Generation</CardTitle>
               <CardDescription>
-                Use Gmail, custom SMTP, or SendGrid to send your campaigns
+                Generate email copy, social posts, ad creatives, and blogs using AI
               </CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
               <Users className="h-12 w-12 text-primary mb-4" />
-              <CardTitle>Personalized Emails</CardTitle>
+              <CardTitle>Multi-Channel Campaigns</CardTitle>
               <CardDescription>
-                Upload CSV and use merge tags like {`{{name}}`} for personalization
+                Email, SMS, and WhatsApp campaigns from one unified platform
               </CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
               <BarChart className="h-12 w-12 text-primary mb-4" />
-              <CardTitle>Real-time Analytics</CardTitle>
+              <CardTitle>Lead Generation</CardTitle>
               <CardDescription>
-                Track opens, clicks, bounces, and deliveries in real-time
+                Extract leads from Google Maps and automate follow-up sequences
               </CardDescription>
             </CardHeader>
           </Card>
