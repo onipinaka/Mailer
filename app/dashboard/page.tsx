@@ -249,55 +249,64 @@ export default function DashboardPage() {
           <span className="h-1 w-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></span>
           Marketing Services
         </h2>
-        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
           {services.map((service) => (
             <Card 
               key={service.title} 
-              className="relative overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700" 
+              className="relative overflow-hidden hover:shadow-2xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700" 
               onClick={() => router.push(service.href)}
             >
               {/* Animated gradient background on hover */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
-              {/* Colored accent line */}
-              <div className={`absolute top-0 left-0 right-0 h-1 ${service.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
+              {/* Colored accent line - left side for horizontal */}
+              <div className={`absolute top-0 left-0 bottom-0 w-1 ${service.color} transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top`}></div>
               
-              <CardHeader className="relative z-10 pb-4">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`${service.color} p-4 rounded-xl text-white shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                    <service.icon className="h-7 w-7" />
-                  </div>
-                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-300">
-                    <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              <div className="flex flex-row items-start gap-6 p-6">
+                {/* Icon Section */}
+                <div className="flex-shrink-0 relative z-10">
+                  <div className={`${service.color} p-5 rounded-2xl text-white shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                    <service.icon className="h-8 w-8" />
                   </div>
                 </div>
-                <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
-                  {service.title}
-                </CardTitle>
-                <CardDescription className="text-sm leading-relaxed mt-2 text-gray-600 dark:text-gray-300">
-                  {service.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                  {service.features.slice(0, 3).map((feature, idx) => (
-                    <div 
-                      key={feature} 
-                      className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2 transform translate-x-0 group-hover:translate-x-1 transition-transform duration-300"
-                      style={{ transitionDelay: `${idx * 50}ms` }}
-                    >
-                      <div className={`h-2 w-2 rounded-full ${service.color} opacity-60 group-hover:opacity-100 transition-opacity`}></div>
-                      <span className="group-hover:font-medium transition-all">{feature}</span>
+                
+                {/* Content Section */}
+                <div className="flex-1 relative z-10 min-w-0">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex-1">
+                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
+                        {service.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm leading-relaxed mt-2 text-gray-600 dark:text-gray-300">
+                        {service.description}
+                      </CardDescription>
                     </div>
-                  ))}
-                  {service.features.length > 3 && (
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-2 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3" />
-                      <span>+{service.features.length - 3} more features</span>
+                    <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-300">
+                      <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Features List */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {service.features.slice(0, 4).map((feature, idx) => (
+                      <div 
+                        key={feature} 
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300 transform group-hover:scale-105 transition-transform duration-300 border border-gray-200 dark:border-gray-700"
+                        style={{ transitionDelay: `${idx * 50}ms` }}
+                      >
+                        <div className={`h-1.5 w-1.5 rounded-full ${service.color} opacity-70 group-hover:opacity-100 transition-opacity`}></div>
+                        <span className="font-medium">{feature}</span>
+                      </div>
+                    ))}
+                    {service.features.length > 4 && (
+                      <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 text-xs text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                        <Sparkles className="h-3 w-3" />
+                        <span className="font-medium">+{service.features.length - 4} more</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
