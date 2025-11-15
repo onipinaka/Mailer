@@ -8,8 +8,112 @@ import RecipientStatus from '@/models/RecipientStatus';
 import { decrypt } from '@/lib/security';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 
 export const dynamic = 'force-dynamic';
+
+// Helper function to create transporter with proper configuration
+async function createTransporter(credential: any, password: string): Promise<Transporter> {
+  let transportConfig: any;
+
+  if (credential.provider === 'gmail') {
+    transportConfig = {
+      service: 'gmail',
+      auth: {
+        user: credential.email,
+        pass: password,
+      },
+      pool: true, // Use connection pooling
+      maxConnections: 5, // Max simultaneous connections
+      maxMessages: 100, // Max messages per connection
+      rateDelta: 1000, // Time between rate limited messages
+      rateLimit: 5, // Max messages per rateDelta
+      // Timeout settings
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000, // 30 seconds
+      socketTimeout: 60000, // 60 seconds
+    };
+  } else if (credential.provider === 'smtp') {
+    const key = process.env.JWT_SECRET;
+    if (!key) throw new Error('Server misconfiguration');
+    
+    const config = JSON.parse(decrypt(credential.encryptedPassword, key));
+    transportConfig = {
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      auth: {
+        user: config.user,
+        pass: config.password,
+      },
+      pool: true, // Use connection pooling
+      maxConnections: 5,
+      maxMessages: 100,
+      rateDelta: 1000,
+      rateLimit: 5,
+      // Timeout settings
+      connectionTimeout: 60000,
+      greetingTimeout: 30000,
+      socketTimeout: 60000,
+      // Additional SMTP settings
+      tls: {
+        rejectUnauthorized: false, // More lenient for various SMTP servers
+      },
+    };
+  } else {
+    throw new Error('Unsupported email provider');
+  }
+
+  const transporter = nodemailer.createTransport(transportConfig);
+  
+  // Verify connection before returning
+  try {
+    await transporter.verify();
+    console.log('SMTP connection verified successfully');
+  } catch (error) {
+    console.error('SMTP verification failed:', error);
+    throw new Error(`Failed to connect to email server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  return transporter;
+}
+
+// Helper function to send email with retry logic
+async function sendEmailWithRetry(
+  transporter: Transporter,
+  mailOptions: any,
+  maxRetries: number = 3
+): Promise<void> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await transporter.sendMail(mailOptions);
+      return; // Success
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+      console.error(`Send attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+      
+      // Don't retry on certain errors
+      if (
+        lastError.message.includes('Invalid login') ||
+        lastError.message.includes('Authentication failed') ||
+        lastError.message.includes('Recipient address rejected')
+      ) {
+        throw lastError; // These errors won't be fixed by retrying
+      }
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10 seconds
+        console.log(`Waiting ${waitTime}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Failed to send email after retries');
+}
 
 // POST - Start email campaign as background job
 export async function POST(request: NextRequest) {
@@ -70,6 +174,8 @@ async function processEmailCampaign(
   credentialId: string,
   sendDelay: number
 ) {
+  let transporter: Transporter | null = null;
+  
   try {
     await dbConnect();
 
@@ -94,30 +200,10 @@ async function processEmailCampaign(
 
     const password = decrypt(credential.encryptedPassword, key);
 
-    // Create transporter based on provider
-    let transporter;
-    if (credential.provider === 'gmail') {
-      transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: credential.email,
-          pass: password,
-        },
-      });
-    } else if (credential.provider === 'smtp') {
-      const config = JSON.parse(decrypt(credential.encryptedPassword, key));
-      transporter = nodemailer.createTransport({
-        host: config.host,
-        port: config.port,
-        secure: config.secure,
-        auth: {
-          user: config.user,
-          pass: config.password,
-        },
-      });
-    } else {
-      throw new Error('Unsupported email provider');
-    }
+    // Create and verify transporter with connection pooling
+    console.log(`Creating transporter for ${credential.provider}...`);
+    transporter = await createTransporter(credential, password);
+    console.log('Transporter created and verified successfully');
 
     let successCount = 0;
     let failedCount = 0;
@@ -130,6 +216,7 @@ async function processEmailCampaign(
         // Check if job was paused
         const currentJob = await Job.findById(jobId);
         if (currentJob?.status === 'paused') {
+          console.log('Job paused, stopping email campaign');
           break;
         }
 
@@ -142,13 +229,15 @@ async function processEmailCampaign(
           personalizedSubject = personalizedSubject.replace(regex, recipient[key] || '');
         });
 
-        // Send email
-        await transporter.sendMail({
+        // Send email with retry logic
+        console.log(`Sending email ${i + 1}/${recipients.length} to ${recipient.email}...`);
+        await sendEmailWithRetry(transporter, {
           from: credential.email,
           to: recipient.email,
           subject: personalizedSubject,
           html: personalizedHtml,
         });
+        console.log(`Email sent successfully to ${recipient.email}`);
 
         // Record success
         await RecipientStatus.create({
@@ -199,6 +288,12 @@ async function processEmailCampaign(
       }
     }
 
+    // Close transporter connection pool
+    if (transporter) {
+      console.log('Closing transporter connection pool...');
+      transporter.close();
+    }
+
     // Mark job as completed
     await Job.findByIdAndUpdate(jobId, {
       status: 'completed',
@@ -210,8 +305,20 @@ async function processEmailCampaign(
         total: recipients.length,
       },
     });
+    
+    console.log(`Campaign completed: ${successCount} sent, ${failedCount} failed`);
   } catch (err: any) {
     console.error('Email campaign job error:', err);
+    
+    // Close transporter on error
+    if (transporter) {
+      try {
+        transporter.close();
+      } catch (closeErr) {
+        console.error('Error closing transporter:', closeErr);
+      }
+    }
+    
     await Job.findByIdAndUpdate(jobId, {
       status: 'failed',
       error: err.message || 'Unknown error',
