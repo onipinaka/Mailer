@@ -178,64 +178,64 @@ export default function DashboardPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="overflow-hidden border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 hover:shadow-xl transition-all duration-300 group">
+        <Card className="overflow-hidden border border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Total Campaigns</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">Total Campaigns</CardTitle>
             <div className="p-2 rounded-lg bg-blue-500 text-white group-hover:scale-110 transition-transform duration-300">
               <Mail className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats.totalCampaigns}</div>
-            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 flex items-center gap-1">
+            <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalCampaigns}</div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               All channels
             </p>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:shadow-xl transition-all duration-300 group">
+        <Card className="overflow-hidden border border-green-200 dark:border-green-800 bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Total Reach</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">Total Reach</CardTitle>
             <div className="p-2 rounded-lg bg-green-500 text-white group-hover:scale-110 transition-transform duration-300">
               <Users className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.totalRecipients?.toLocaleString() ?? 0}</div>
-            <p className="text-xs text-green-700 dark:text-green-300 mt-1 flex items-center gap-1">
+            <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalRecipients?.toLocaleString() ?? 0}</div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               Messages delivered
             </p>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 hover:shadow-xl transition-all duration-300 group">
+        <Card className="overflow-hidden border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900 dark:text-purple-100">Avg. Open Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">Avg. Open Rate</CardTitle>
             <div className="p-2 rounded-lg bg-purple-500 text-white group-hover:scale-110 transition-transform duration-300">
               <Eye className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{stats.averageOpenRate?.toFixed(1) ?? 0}%</div>
-            <p className="text-xs text-purple-700 dark:text-purple-300 mt-1 flex items-center gap-1">
+            <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.averageOpenRate?.toFixed(1) ?? 0}%</div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               Engagement rate
             </p>
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 hover:shadow-xl transition-all duration-300 group">
+        <Card className="overflow-hidden border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-900 dark:text-orange-100">Avg. Click Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">Avg. Click Rate</CardTitle>
             <div className="p-2 rounded-lg bg-orange-500 text-white group-hover:scale-110 transition-transform duration-300">
               <MousePointer className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats.averageClickRate?.toFixed(1) ?? 0}%</div>
-            <p className="text-xs text-orange-700 dark:text-orange-300 mt-1 flex items-center gap-1">
+            <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.averageClickRate?.toFixed(1) ?? 0}%</div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               Conversion rate
             </p>
@@ -253,11 +253,11 @@ export default function DashboardPage() {
           {services.map((service) => (
             <Card 
               key={service.title} 
-              className="relative overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800" 
+              className="relative overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700" 
               onClick={() => router.push(service.href)}
             >
               {/* Animated gradient background on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-100 dark:to-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               {/* Colored accent line */}
               <div className={`absolute top-0 left-0 right-0 h-1 ${service.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
@@ -271,10 +271,10 @@ export default function DashboardPage() {
                     <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
-                <CardTitle className="text-xl font-bold group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
+                <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
                   {service.title}
                 </CardTitle>
-                <CardDescription className="text-sm leading-relaxed mt-2">
+                <CardDescription className="text-sm leading-relaxed mt-2 text-gray-600 dark:text-gray-300">
                   {service.description}
                 </CardDescription>
               </CardHeader>
@@ -304,18 +304,18 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-0 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 shadow-lg">
+      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-3">
+          <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
             <Zap className="h-6 w-6 text-yellow-500" />
             Quick Actions
           </CardTitle>
-          <CardDescription>Jump to common tasks</CardDescription>
+          <CardDescription className="text-gray-600 dark:text-gray-300">Jump to common tasks</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Button 
             onClick={() => router.push('/dashboard/compose-new')} 
-            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-xl transition-all duration-300 group"
           >
             <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
               <Mail className="h-6 w-6" />
@@ -324,7 +324,7 @@ export default function DashboardPage() {
           </Button>
           <Button 
             onClick={() => router.push('/dashboard/ai-content')} 
-            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-md hover:shadow-xl transition-all duration-300 group"
           >
             <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
               <Sparkles className="h-6 w-6" />
@@ -333,7 +333,7 @@ export default function DashboardPage() {
           </Button>
           <Button 
             onClick={() => router.push('/dashboard/leads')} 
-            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-md hover:shadow-xl transition-all duration-300 group"
           >
             <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
               <Users className="h-6 w-6" />
@@ -342,7 +342,7 @@ export default function DashboardPage() {
           </Button>
           <Button 
             onClick={() => router.push('/dashboard/analytics')} 
-            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-md hover:shadow-xl transition-all duration-300 group"
           >
             <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
               <BarChart3 className="h-6 w-6" />
