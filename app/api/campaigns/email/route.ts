@@ -153,9 +153,10 @@ async function processEmailCampaign(
         // Record success
         await RecipientStatus.create({
           userId: new mongoose.Types.ObjectId(userId),
+          campaignId: jobId,
           recipientEmail: recipient.email,
-          subject: personalizedSubject,
-          sent: true,
+          recipientName: recipient.name || recipient.firstName || '',
+          status: 'sent',
           sentAt: new Date(),
         });
 
@@ -180,10 +181,12 @@ async function processEmailCampaign(
         // Record failure
         await RecipientStatus.create({
           userId: new mongoose.Types.ObjectId(userId),
+          campaignId: jobId,
           recipientEmail: recipient.email,
-          subject,
-          sent: false,
-          bounced: true,
+          recipientName: recipient.name || recipient.firstName || '',
+          status: 'failed',
+          errorMessage: err instanceof Error ? err.message : 'Unknown error',
+          sentAt: new Date(),
         });
 
         // Update job progress
