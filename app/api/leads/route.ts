@@ -77,94 +77,134 @@ async function processLeadGenerationJob(
     });
 
     const leads: any[] = [];
-    const googleApiKey = process.env.GOOGLE_PLACES_API_KEY;
 
-    if (googleApiKey) {
-      // Use Google Places API
-      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${googleApiKey}`;
-      const searchRes = await fetch(searchUrl);
-      const searchData = await searchRes.json();
+    // Try using Python scraper first (most reliable)
+    try {
+      const { spawn } = require('child_process');
+      const path = require('path');
+      
+      const scriptPath = path.join(process.cwd(), 'scripts', 'scrape_google_maps.py');
+      const pythonProcess = spawn('python', [scriptPath, query, maxResults.toString()]);
 
-      if (searchData.status === 'OK') {
-        for (const place of searchData.results.slice(0, maxResults)) {
-          try {
-            const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,url&key=${googleApiKey}`;
-            const detailsRes = await fetch(detailsUrl);
-            const detailsData = await detailsRes.json();
+      let scriptOutput = '';
+      let jsonOutput = '';
+      let isCapturingJson = false;
 
-            if (detailsData.status === 'OK') {
-              const placeDetails = detailsData.result;
+      pythonProcess.stdout.on('data', (data: Buffer) => {
+        const output = data.toString();
+        scriptOutput += output;
+        
+        if (output.includes('===JSON_OUTPUT_START===')) {
+          isCapturingJson = true;
+          jsonOutput = '';
+        } else if (output.includes('===JSON_OUTPUT_END===')) {
+          isCapturingJson = false;
+        } else if (isCapturingJson) {
+          jsonOutput += output;
+        }
+      });
 
-              const lead = new Lead({
-                userId: new mongoose.Types.ObjectId(userId),
-                businessName: placeDetails.name,
-                category: place.types?.[0] || 'business',
-                address: placeDetails.formatted_address,
-                website: placeDetails.website,
-                phone: placeDetails.formatted_phone_number,
-                googleMapsUrl: placeDetails.url,
-                rating: placeDetails.rating,
-                reviewsCount: placeDetails.user_ratings_total || 0,
-                tags: [...tags, query.split(' ')[0]],
-                status: 'new',
-              });
+      pythonProcess.stderr.on('data', (data: Buffer) => {
+        console.error('Python stderr:', data.toString());
+      });
 
-              await lead.save();
-              leads.push(lead);
+      await new Promise<void>((resolve, reject) => {
+        pythonProcess.on('close', async (code: number) => {
+          if (code === 0 && jsonOutput) {
+            try {
+              const scrapedData = JSON.parse(jsonOutput);
+              
+              for (const business of scrapedData) {
+                const lead = new Lead({
+                  userId: new mongoose.Types.ObjectId(userId),
+                  businessName: business.name !== 'N/A' ? business.name : 'Unknown',
+                  category: business.category || query.split(' ')[0],
+                  address: business.address !== 'N/A' ? business.address : undefined,
+                  website: business.website !== 'N/A' ? business.website : undefined,
+                  phone: business.phone !== 'N/A' ? business.phone : undefined,
+                  googleMapsUrl: business.google_maps_url,
+                  rating: business.rating !== 'N/A' ? parseFloat(business.rating) : undefined,
+                  reviewsCount: business.reviews !== 'N/A' ? parseInt(business.reviews) : 0,
+                  tags: [...tags, query.split(' ')[0]],
+                  status: 'new',
+                  notes: `Hours: ${business.hours}`,
+                });
 
-              // Update job progress
-              await Job.findByIdAndUpdate(jobId, {
-                processedItems: leads.length,
-                successCount: leads.length,
-                progress: Math.round((leads.length / maxResults) * 100),
-              });
+                await lead.save();
+                leads.push(lead);
+
+                await Job.findByIdAndUpdate(jobId, {
+                  processedItems: leads.length,
+                  successCount: leads.length,
+                  progress: Math.round((leads.length / maxResults) * 100),
+                });
+              }
+              resolve();
+            } catch (err) {
+              console.error('Error parsing Python output:', err);
+              reject(err);
             }
+          } else {
+            console.log('Python script output:', scriptOutput);
+            reject(new Error('Python script failed or no data returned'));
+          }
+        });
+      });
 
-            await new Promise((resolve) => setTimeout(resolve, 100));
-          } catch (err) {
-            console.error('Error processing lead:', err);
+    } catch (pythonError) {
+      console.error('Python scraper failed:', pythonError);
+      
+      // Fallback to Google Places API if available
+      const googleApiKey = process.env.GOOGLE_PLACES_API_KEY;
+      
+      if (googleApiKey) {
+        console.log('Falling back to Google Places API');
+        const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${googleApiKey}`;
+        const searchRes = await fetch(searchUrl);
+        const searchData = await searchRes.json();
+
+        if (searchData.status === 'OK') {
+          for (const place of searchData.results.slice(0, maxResults)) {
+            try {
+              const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,url&key=${googleApiKey}`;
+              const detailsRes = await fetch(detailsUrl);
+              const detailsData = await detailsRes.json();
+
+              if (detailsData.status === 'OK') {
+                const placeDetails = detailsData.result;
+
+                const lead = new Lead({
+                  userId: new mongoose.Types.ObjectId(userId),
+                  businessName: placeDetails.name,
+                  category: place.types?.[0] || 'business',
+                  address: placeDetails.formatted_address,
+                  website: placeDetails.website,
+                  phone: placeDetails.formatted_phone_number,
+                  googleMapsUrl: placeDetails.url,
+                  rating: placeDetails.rating,
+                  reviewsCount: placeDetails.user_ratings_total || 0,
+                  tags: [...tags, query.split(' ')[0]],
+                  status: 'new',
+                });
+
+                await lead.save();
+                leads.push(lead);
+
+                await Job.findByIdAndUpdate(jobId, {
+                  processedItems: leads.length,
+                  successCount: leads.length,
+                  progress: Math.round((leads.length / maxResults) * 100),
+                });
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            } catch (err) {
+              console.error('Error processing lead:', err);
+            }
           }
         }
-      }
-    } else {
-      // Fallback: Use web scraping with Cheerio (simplified)
-      // In production, you'd use Puppeteer for Google Maps scraping
-      const searchQuery = encodeURIComponent(query);
-      const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
-
-      try {
-        const response = await fetch(searchUrl, {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          },
-        });
-
-        // For demo purposes, create sample leads
-        for (let i = 0; i < Math.min(5, maxResults); i++) {
-          const lead = new Lead({
-            userId: new mongoose.Types.ObjectId(userId),
-            businessName: `Sample Business ${i + 1}`,
-            category: query.split(' ')[0],
-            address: location || 'Unknown',
-            tags: [...tags, query.split(' ')[0]],
-            status: 'new',
-            leadScore: Math.floor(Math.random() * 100),
-          });
-
-          await lead.save();
-          leads.push(lead);
-
-          await Job.findByIdAndUpdate(jobId, {
-            processedItems: leads.length,
-            successCount: leads.length,
-            progress: Math.round((leads.length / maxResults) * 100),
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-      } catch (err) {
-        console.error('Web scraping error:', err);
+      } else {
+        throw new Error('Both Python scraper and Google Places API failed. Please configure GOOGLE_PLACES_API_KEY or install Python with Selenium.');
       }
     }
 

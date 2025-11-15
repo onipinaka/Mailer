@@ -7,13 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, RefreshCw, MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
+import { Users, Search, RefreshCw, MapPin, Phone, Mail, Globe, Star, Download } from 'lucide-react';
 
 export default function LeadsPage() {
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [jobId, setJobId] = useState('');
+  const [jobStatus, setJobStatus] = useState<any>(null);
   const [leads, setLeads] = useState<any[]>([]);
   const [allLeads, setAllLeads] = useState<any[]>([]);
 
@@ -41,6 +44,7 @@ export default function LeadsPage() {
 
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const res = await fetch('/api/leads', {
@@ -48,20 +52,84 @@ export default function LeadsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: `${query} in ${location}`,
-          maxResults: 20,
+          maxResults: 50,
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to generate leads');
+      if (!res.ok) throw new Error('Failed to start lead generation');
 
       const data = await res.json();
-      setLeads(data.leads || []);
-      await fetchLeads(); // Refresh all leads
+      setJobId(data.jobId);
+      setSuccess('Lead generation started! Checking progress...');
+      
+      // Poll for job status
+      pollJobStatus(data.jobId);
     } catch (err: any) {
       setError(err.message || 'Failed to generate leads');
-    } finally {
       setLoading(false);
     }
+  };
+
+  const pollJobStatus = async (id: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/jobs?jobId=${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setJobStatus(data.job);
+          
+          if (data.job.status === 'completed') {
+            clearInterval(interval);
+            setLoading(false);
+            setSuccess(`Successfully generated ${data.job.successCount} leads!`);
+            await fetchLeads();
+          } else if (data.job.status === 'failed') {
+            clearInterval(interval);
+            setLoading(false);
+            setError(`Lead generation failed: ${data.job.error}`);
+          }
+        }
+      } catch (err) {
+        console.error('Error polling job status:', err);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    // Stop polling after 5 minutes
+    setTimeout(() => clearInterval(interval), 300000);
+  };
+
+  const exportToCSV = () => {
+    if (allLeads.length === 0) {
+      setError('No leads to export');
+      return;
+    }
+
+    const headers = ['Business Name', 'Category', 'Address', 'Phone', 'Email', 'Website', 'Rating', 'Reviews', 'Status', 'Google Maps URL'];
+    const rows = allLeads.map(lead => [
+      lead.businessName || '',
+      lead.category || '',
+      lead.address || '',
+      lead.phone || '',
+      lead.email || '',
+      lead.website || '',
+      lead.rating || '',
+      lead.reviewsCount || '',
+      lead.status || '',
+      lead.googleMapsUrl || '',
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leads_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const getStatusColor = (status: string) => {
@@ -115,6 +183,30 @@ export default function LeadsPage() {
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
+          )}
+
+          {success && (
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-800">{success}</AlertDescription>
+            </Alert>
+          )}
+
+          {jobStatus && jobStatus.status === 'processing' && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progress</span>
+                <span>{jobStatus.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${jobStatus.progress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-600">
+                Processed {jobStatus.processedItems} / {jobStatus.totalItems} leads
+              </p>
+            </div>
           )}
 
           <Button onClick={handleGenerate} disabled={loading}>
@@ -201,11 +293,21 @@ export default function LeadsPage() {
       {/* All Leads */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            All Leads ({allLeads.length})
-          </CardTitle>
-          <CardDescription>Your complete lead database</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                All Leads ({allLeads.length})
+              </CardTitle>
+              <CardDescription>Your complete lead database</CardDescription>
+            </div>
+            {allLeads.length > 0 && (
+              <Button onClick={exportToCSV} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {allLeads.length === 0 ? (
@@ -219,7 +321,10 @@ export default function LeadsPage() {
                 <div key={lead._id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
                   <div>
                     <h3 className="font-medium">{lead.businessName}</h3>
-                    <p className="text-sm text-gray-600">{lead.category} • {lead.address}</p>
+                    <p className="text-sm text-gray-600">
+                      {lead.category} • {lead.address}
+                      {lead.phone && ` • ${lead.phone}`}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>

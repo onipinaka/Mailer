@@ -159,90 +159,144 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          AI Marketer Dashboard
-        </h1>
-        <p className="text-gray-600 mt-2">Your complete AI-powered marketing automation platform</p>
+    <div className="space-y-8 p-6 sm:p-8">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-8 sm:p-10 shadow-2xl">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 flex items-center gap-3">
+            <Sparkles className="h-10 w-10 animate-pulse" />
+            AI Marketer Dashboard
+          </h1>
+          <p className="text-blue-100 text-lg max-w-2xl">
+            Your complete AI-powered marketing automation platform
+          </p>
+        </div>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-6 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Total Campaigns</CardTitle>
+            <div className="p-2 rounded-lg bg-blue-500 text-white group-hover:scale-110 transition-transform duration-300">
+              <Mail className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCampaigns}</div>
-            <p className="text-xs text-muted-foreground">All channels</p>
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats.totalCampaigns}</div>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              All channels
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Total Reach</CardTitle>
+            <div className="p-2 rounded-lg bg-green-500 text-white group-hover:scale-110 transition-transform duration-300">
+              <Users className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRecipients?.toLocaleString() ?? 0}</div>
-            <p className="text-xs text-muted-foreground">Messages delivered</p>
+            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.totalRecipients?.toLocaleString() ?? 0}</div>
+            <p className="text-xs text-green-700 dark:text-green-300 mt-1 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Messages delivered
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Open Rate</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-purple-900 dark:text-purple-100">Avg. Open Rate</CardTitle>
+            <div className="p-2 rounded-lg bg-purple-500 text-white group-hover:scale-110 transition-transform duration-300">
+              <Eye className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageOpenRate?.toFixed(1) ?? 0}%</div>
-            <p className="text-xs text-muted-foreground">Engagement rate</p>
+            <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{stats.averageOpenRate?.toFixed(1) ?? 0}%</div>
+            <p className="text-xs text-purple-700 dark:text-purple-300 mt-1 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Engagement rate
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 hover:shadow-xl transition-all duration-300 group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Click Rate</CardTitle>
-            <MousePointer className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-orange-900 dark:text-orange-100">Avg. Click Rate</CardTitle>
+            <div className="p-2 rounded-lg bg-orange-500 text-white group-hover:scale-110 transition-transform duration-300">
+              <MousePointer className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageClickRate?.toFixed(1) ?? 0}%</div>
-            <p className="text-xs text-muted-foreground">Conversion rate</p>
+            <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats.averageClickRate?.toFixed(1) ?? 0}%</div>
+            <p className="text-xs text-orange-700 dark:text-orange-300 mt-1 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Conversion rate
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Services Grid */}
       <div>
-        <h2 className="text-2xl font-bold mb-6">Marketing Services</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span className="h-1 w-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></span>
+          Marketing Services
+        </h2>
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((service) => (
             <Card 
               key={service.title} 
-              className="hover:shadow-lg transition-shadow cursor-pointer group" 
+              className="relative overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800" 
               onClick={() => router.push(service.href)}
             >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className={`${service.color} p-3 rounded-lg text-white`}>
-                    <service.icon className="h-6 w-6" />
+              {/* Animated gradient background on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-100 dark:to-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              {/* Colored accent line */}
+              <div className={`absolute top-0 left-0 right-0 h-1 ${service.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left`}></div>
+              
+              <CardHeader className="relative z-10 pb-4">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`${service.color} p-4 rounded-xl text-white shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                    <service.icon className="h-7 w-7" />
                   </div>
-                  <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-300">
+                    <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
                 </div>
-                <CardTitle className="mt-4">{service.title}</CardTitle>
-                <CardDescription>{service.description}</CardDescription>
+                <CardTitle className="text-xl font-bold group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
+                  {service.title}
+                </CardTitle>
+                <CardDescription className="text-sm leading-relaxed mt-2">
+                  {service.description}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {service.features.map((feature) => (
-                    <li key={feature} className="text-sm text-gray-600 flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-gray-400"></div>
-                      {feature}
-                    </li>
+              <CardContent className="relative z-10">
+                <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  {service.features.slice(0, 3).map((feature, idx) => (
+                    <div 
+                      key={feature} 
+                      className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2 transform translate-x-0 group-hover:translate-x-1 transition-transform duration-300"
+                      style={{ transitionDelay: `${idx * 50}ms` }}
+                    >
+                      <div className={`h-2 w-2 rounded-full ${service.color} opacity-60 group-hover:opacity-100 transition-opacity`}></div>
+                      <span className="group-hover:font-medium transition-all">{feature}</span>
+                    </div>
                   ))}
-                </ul>
+                  {service.features.length > 3 && (
+                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-2 flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      <span>+{service.features.length - 3} more features</span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -250,27 +304,50 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="border-0 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 shadow-lg">
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <Zap className="h-6 w-6 text-yellow-500" />
+            Quick Actions
+          </CardTitle>
           <CardDescription>Jump to common tasks</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <Button onClick={() => router.push('/dashboard/compose-new')} className="h-auto py-4 flex-col gap-2">
-            <Mail className="h-5 w-5" />
-            <span>New Campaign</span>
+        <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Button 
+            onClick={() => router.push('/dashboard/compose-new')} 
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+          >
+            <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
+              <Mail className="h-6 w-6" />
+            </div>
+            <span className="font-semibold">New Campaign</span>
           </Button>
-          <Button onClick={() => router.push('/dashboard/ai-content')} variant="outline" className="h-auto py-4 flex-col gap-2">
-            <Sparkles className="h-5 w-5" />
-            <span>Generate Content</span>
+          <Button 
+            onClick={() => router.push('/dashboard/ai-content')} 
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+          >
+            <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <span className="font-semibold">Generate Content</span>
           </Button>
-          <Button onClick={() => router.push('/dashboard/leads')} variant="outline" className="h-auto py-4 flex-col gap-2">
-            <Users className="h-5 w-5" />
-            <span>Find Leads</span>
+          <Button 
+            onClick={() => router.push('/dashboard/leads')} 
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+          >
+            <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
+              <Users className="h-6 w-6" />
+            </div>
+            <span className="font-semibold">Find Leads</span>
           </Button>
-          <Button onClick={() => router.push('/dashboard/analytics')} variant="outline" className="h-auto py-4 flex-col gap-2">
-            <BarChart3 className="h-5 w-5" />
-            <span>View Analytics</span>
+          <Button 
+            onClick={() => router.push('/dashboard/analytics')} 
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 shadow-md hover:shadow-xl transition-all duration-300 group"
+          >
+            <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            <span className="font-semibold">View Analytics</span>
           </Button>
         </CardContent>
       </Card>
