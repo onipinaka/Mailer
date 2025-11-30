@@ -100,20 +100,21 @@ async function processLeadGenerationJob(
         const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
         for (const place of items) {
+          const placeData = place as any;
           const lead = new Lead({
             userId: new mongoose.Types.ObjectId(userId),
-            businessName: place.title || place.name || 'Unknown',
-            category: place.categoryName || place.categories?.[0] || query.split(' ')[0],
-            address: place.address || place.location?.address,
-            website: place.website || place.url,
-            phone: place.phone || place.phoneUnformatted,
-            email: place.email,
-            googleMapsUrl: place.url || `https://www.google.com/maps/place/?q=place_id:${place.placeId}`,
-            rating: place.rating ? parseFloat(place.rating) : undefined,
-            reviewsCount: place.reviewsCount || place.totalScore || 0,
+            businessName: placeData.title || placeData.name || 'Unknown',
+            category: placeData.categoryName || (Array.isArray(placeData.categories) ? placeData.categories[0] : undefined) || query.split(' ')[0],
+            address: placeData.address || placeData.location?.address,
+            website: placeData.website || placeData.url,
+            phone: placeData.phone || placeData.phoneUnformatted,
+            email: placeData.email,
+            googleMapsUrl: placeData.url || `https://www.google.com/maps/place/?q=place_id:${placeData.placeId}`,
+            rating: placeData.rating ? parseFloat(placeData.rating) : undefined,
+            reviewsCount: placeData.reviewsCount || placeData.totalScore || 0,
             tags: [...tags, query.split(' ')[0]],
             status: 'new',
-            notes: place.openingHours ? `Hours: ${JSON.stringify(place.openingHours)}` : undefined,
+            notes: placeData.openingHours ? `Hours: ${JSON.stringify(placeData.openingHours)}` : undefined,
           });
 
           await lead.save();
