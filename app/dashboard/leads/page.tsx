@@ -12,6 +12,7 @@ import { Users, Search, RefreshCw, MapPin, Phone, Mail, Globe, Star, Download } 
 export default function LeadsPage() {
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('');
+  const [maxResults, setMaxResults] = useState(20);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -52,7 +53,7 @@ export default function LeadsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: `${query} in ${location}`,
-          maxResults: 50,
+          maxResults: maxResults,
         }),
       });
 
@@ -144,46 +145,78 @@ export default function LeadsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Lead Generation</h1>
-        <p className="text-gray-600">Find and manage leads with Google Places API</p>
-      </div>
-
-      {/* Generate Leads */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Generate New Leads
-          </CardTitle>
-          <CardDescription>Search for businesses on Google Maps</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Search Query</Label>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g., restaurants, hotels, lawyers"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Location</Label>
-              <Input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g., Pune, Mumbai, Delhi"
-              />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Lead Generation
+            </h1>
+            <p className="text-gray-600 mt-2">Find and manage leads with AI-powered Google Maps scraping</p>
           </div>
+          <Button onClick={fetchLeads} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        {/* Generate Leads */}
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
+          <CardHeader className="border-b bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Search className="h-6 w-6" />
+              Generate New Leads
+            </CardTitle>
+            <CardDescription className="text-blue-50">
+              Search for businesses on Google Maps and generate qualified leads
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700">Search Query</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="e.g., restaurants, hotels, lawyers"
+                    className="pl-10 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700">Location</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g., Pune, Mumbai, Delhi"
+                    className="pl-10 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700">Number of Leads</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={maxResults}
+                  onChange={(e) => setMaxResults(parseInt(e.target.value) || 20)}
+                  placeholder="20"
+                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <Alert variant="destructive" className="border-red-200 bg-red-50">
+                <AlertDescription className="text-red-800">{error}</AlertDescription>
+              </Alert>
+            )}
 
           {success && (
             <Alert className="border-green-200 bg-green-50">
@@ -209,76 +242,85 @@ export default function LeadsPage() {
             </div>
           )}
 
-          <Button onClick={handleGenerate} disabled={loading}>
+          <Button 
+            onClick={handleGenerate} 
+            disabled={loading} 
+            className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg"
+          >
             {loading ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              <>
+                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                Generating Leads...
+              </>
             ) : (
-              <Search className="h-4 w-4 mr-2" />
+              <>
+                <Search className="h-5 w-5 mr-2" />
+                Generate Leads
+              </>
             )}
-            Generate Leads
           </Button>
         </CardContent>
       </Card>
 
       {/* Generated Leads */}
       {leads.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Generated Leads ({leads.length})</CardTitle>
-            <CardDescription>Newly generated leads from Google Places</CardDescription>
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="border-b bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+            <CardTitle className="text-xl">Generated Leads ({leads.length})</CardTitle>
+            <CardDescription className="text-green-50">Newly generated leads from Google Maps</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-6">
+            <div className="grid gap-4">
               {leads.map((lead) => (
-                <Card key={lead._id} className="border-2">
-                  <CardContent className="pt-6">
+                <Card key={lead._id} className="border-2 border-gray-200 hover:border-blue-400 hover:shadow-md transition-all">
+                  <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-semibold">{lead.businessName}</h3>
-                        <p className="text-sm text-gray-600">{lead.category}</p>
+                        <h3 className="text-xl font-bold text-gray-900">{lead.businessName}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{lead.category}</p>
                       </div>
-                      <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
+                      <Badge className={getStatusColor(lead.status) + " px-3 py-1"}>{lead.status}</Badge>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4 text-sm">
                       {lead.address && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                          <span>{lead.address}</span>
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-700">{lead.address}</span>
                         </div>
                       )}
                       {lead.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-gray-400" />
-                          <span>{lead.phone}</span>
+                        <div className="flex items-center gap-3">
+                          <Phone className="h-5 w-5 text-green-500 flex-shrink-0" />
+                          <span className="text-gray-700 font-medium">{lead.phone}</span>
                         </div>
                       )}
                       {lead.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          <span>{lead.email}</span>
+                        <div className="flex items-center gap-3">
+                          <Mail className="h-5 w-5 text-purple-500 flex-shrink-0" />
+                          <span className="text-gray-700">{lead.email}</span>
                         </div>
                       )}
                       {lead.website && (
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-gray-400" />
-                          <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                            Website
+                        <div className="flex items-center gap-3">
+                          <Globe className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+                          <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                            Visit Website
                           </a>
                         </div>
                       )}
                       {lead.rating && (
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-yellow-400" />
-                          <span>{lead.rating} ({lead.reviewsCount} reviews)</span>
+                        <div className="flex items-center gap-3">
+                          <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                          <span className="text-gray-700 font-semibold">{lead.rating} ({lead.reviewsCount} reviews)</span>
                         </div>
                       )}
                     </div>
 
                     {lead.tags && lead.tags.length > 0 && (
-                      <div className="flex gap-2 mt-4">
+                      <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
                         {lead.tags.map((tag: string) => (
-                          <Badge key={tag} variant="outline">{tag}</Badge>
+                          <Badge key={tag} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{tag}</Badge>
                         ))}
                       </div>
                     )}
@@ -291,47 +333,48 @@ export default function LeadsPage() {
       )}
 
       {/* All Leads */}
-      <Card>
-        <CardHeader>
+      <Card className="border-0 shadow-xl">
+        <CardHeader className="border-b bg-gradient-to-r from-slate-700 to-slate-800 text-white">
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Users className="h-6 w-6" />
                 All Leads ({allLeads.length})
               </CardTitle>
-              <CardDescription>Your complete lead database</CardDescription>
+              <CardDescription className="text-slate-200">Your complete lead database</CardDescription>
             </div>
             {allLeads.length > 0 && (
-              <Button onClick={exportToCSV} variant="outline">
+              <Button onClick={exportToCSV} variant="outline" className="bg-white text-slate-800 hover:bg-slate-100 border-0 shadow">
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {allLeads.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>No leads found. Generate some leads to get started.</p>
+            <div className="text-center py-16 text-gray-500">
+              <Users className="h-16 w-16 mx-auto mb-4 opacity-20" />
+              <p className="text-lg font-medium">No leads found</p>
+              <p className="text-sm mt-1">Generate some leads to get started</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {allLeads.map((lead) => (
-                <div key={lead._id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
-                  <div>
-                    <h3 className="font-medium">{lead.businessName}</h3>
-                    <p className="text-sm text-gray-600">
-                      {lead.category} • {lead.address}
+                <div key={lead._id} className="flex justify-between items-center p-5 border-2 border-gray-100 rounded-xl hover:border-blue-300 hover:shadow-md transition-all bg-white">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-gray-900 text-lg">{lead.businessName}</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      <span className="font-medium">{lead.category}</span> • {lead.address}
                       {lead.phone && ` • ${lead.phone}`}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
+                  <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+                    <Badge className={getStatusColor(lead.status) + " px-3 py-1.5 font-semibold"}>{lead.status}</Badge>
                     {lead.rating && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 text-yellow-400" />
-                        {lead.rating}
+                      <div className="flex items-center gap-1.5 text-sm bg-yellow-50 px-3 py-1.5 rounded-lg border border-yellow-200">
+                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                        <span className="font-bold text-yellow-700">{lead.rating}</span>
                       </div>
                     )}
                   </div>
@@ -341,6 +384,7 @@ export default function LeadsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

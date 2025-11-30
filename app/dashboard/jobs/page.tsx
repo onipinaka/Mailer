@@ -52,13 +52,20 @@ export default function JobsPage() {
     }
   };
 
-  const handleDelete = async (jobId: string) => {
-    if (!confirm('Delete this job?')) return;
+  const handleDelete = async (jobId: string, status: string) => {
+    const message = status === 'processing' 
+      ? 'Stop this running job? This will cancel the operation.' 
+      : 'Delete this job?';
+    
+    if (!confirm(message)) return;
 
     try {
       const res = await fetch(`/api/jobs?jobId=${jobId}`, { method: 'DELETE' });
       if (res.ok) {
         fetchJobs();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to delete job');
       }
     } catch (err) {
       setError('Failed to delete job');
@@ -178,10 +185,14 @@ export default function JobsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(job._id)}
-                      disabled={job.status === 'processing'}
+                      onClick={() => handleDelete(job._id, job.status)}
+                      title={job.status === 'processing' ? 'Stop job' : 'Delete job'}
                     >
-                      <Trash2 className="h-4 w-4 text-red-600" />
+                      {job.status === 'processing' ? (
+                        <XCircle className="h-4 w-4 text-orange-600" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      )}
                     </Button>
                   </div>
                 </div>

@@ -68,13 +68,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    // Only allow deleting completed/failed jobs
-    if (job.status === 'processing') {
-      job.status = 'paused';
+    // If job is processing, mark it as failed/cancelled to stop it
+    if (job.status === 'processing' || job.status === 'pending') {
+      job.status = 'failed';
+      job.error = 'Job cancelled by user';
+      job.completedAt = new Date();
       await job.save();
-      return NextResponse.json({ message: 'Job paused', job });
+      return NextResponse.json({ message: 'Job cancelled', job });
     }
 
+    // Delete completed/failed/paused jobs
     await Job.findByIdAndDelete(jobId);
     return NextResponse.json({ message: 'Job deleted' });
   } catch (err: any) {

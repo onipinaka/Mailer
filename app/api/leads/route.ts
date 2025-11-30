@@ -100,6 +100,13 @@ async function processLeadGenerationJob(
         const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
         for (const place of items) {
+          // Check if job was cancelled
+          const currentJob = await Job.findById(jobId);
+          if (!currentJob || currentJob.status === 'failed') {
+            console.log('Job was cancelled, stopping lead generation');
+            return;
+          }
+
           const placeData = place as any;
           const lead = new Lead({
             userId: new mongoose.Types.ObjectId(userId),
@@ -147,6 +154,13 @@ async function processLeadGenerationJob(
         if (searchData.status === 'OK') {
           for (const place of searchData.results.slice(0, maxResults)) {
             try {
+              // Check if job was cancelled
+              const currentJob = await Job.findById(jobId);
+              if (!currentJob || currentJob.status === 'failed') {
+                console.log('Job was cancelled, stopping lead generation');
+                return;
+              }
+
               const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,url&key=${googleApiKey}`;
               const detailsRes = await fetch(detailsUrl);
               const detailsData = await detailsRes.json();

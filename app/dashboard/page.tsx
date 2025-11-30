@@ -95,15 +95,16 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-8 p-6 sm:p-8">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-8 sm:p-10 shadow-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-10 sm:p-12 shadow-2xl">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10">
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 flex items-center gap-3">
-            <Sparkles className="h-10 w-10 animate-pulse" />
+          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4 flex items-center gap-4">
+            <Sparkles className="h-12 w-12 animate-pulse" />
             AI Marketer Dashboard
           </h1>
-          <p className="text-blue-100 text-lg max-w-2xl">
+          <p className="text-blue-50 text-xl max-w-2xl">
             Your complete AI-powered marketing automation platform
           </p>
         </div>
@@ -296,6 +297,7 @@ export default function DashboardPage() {
           </Button>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
