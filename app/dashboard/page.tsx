@@ -77,70 +77,6 @@ export default function DashboardPage() {
       features: ['Google Maps Scraper', 'CRM', 'Lead Scoring', 'Tags']
     },
     {
-      title: 'Automation Workflows',
-      description: 'Build automated marketing sequences',
-      icon: Workflow,
-      color: 'bg-orange-500',
-      href: '/dashboard/workflows',
-      features: ['Triggers', 'Multi-step Actions', 'Delays', 'Conditions']
-    },
-    {
-      title: 'Social Media Manager',
-      description: 'Schedule and post to all platforms',
-      icon: Share2,
-      color: 'bg-pink-500',
-      href: '/dashboard/social',
-      features: ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'TikTok']
-    },
-    {
-      title: 'Ad Campaigns',
-      description: 'Manage paid advertising campaigns',
-      icon: Megaphone,
-      color: 'bg-red-500',
-      href: '/dashboard/ads',
-      features: ['Meta Ads', 'Google Ads', 'LinkedIn Ads', 'TikTok Ads']
-    },
-    {
-      title: 'AI Chatbots',
-      description: 'Build intelligent chatbots',
-      icon: Bot,
-      color: 'bg-cyan-500',
-      href: '/dashboard/chatbots',
-      features: ['Website Chat', 'WhatsApp Bot', 'Facebook Bot', 'AI Responses']
-    },
-    {
-      title: 'SEO Optimizer',
-      description: 'AI-powered SEO tools',
-      icon: Search,
-      color: 'bg-indigo-500',
-      href: '/dashboard/seo',
-      features: ['Meta Tags', 'Keywords', 'Content Analysis', 'Schema Markup']
-    },
-    {
-      title: 'Creative Studio',
-      description: 'Generate logos, banners, images',
-      icon: Palette,
-      color: 'bg-yellow-500',
-      href: '/dashboard/creative',
-      features: ['Logo Design', 'Banners', 'Social Images', 'Ad Creatives']
-    },
-    {
-      title: 'Analytics & Insights',
-      description: 'Track performance across all channels',
-      icon: BarChart3,
-      color: 'bg-teal-500',
-      href: '/dashboard/analytics',
-      features: ['Cross-Channel', 'AI Insights', 'Reports', 'Real-time']
-    },
-    {
-      title: 'Integrations',
-      description: 'Connect external platforms',
-      icon: Zap,
-      color: 'bg-violet-500',
-      href: '/dashboard/integrations',
-      features: ['Meta', 'Google', 'Mailchimp', 'HubSpot', 'Salesforce']
-    },
-    {
       title: 'Background Jobs',
       description: 'Monitor campaign progress',
       icon: Clock,
@@ -350,13 +286,13 @@ export default function DashboardPage() {
             <span className="font-semibold">Find Leads</span>
           </Button>
           <Button 
-            onClick={() => router.push('/dashboard/analytics')} 
-            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-md hover:shadow-xl transition-all duration-300 group"
+            onClick={() => router.push('/dashboard/jobs')} 
+            className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white shadow-md hover:shadow-xl transition-all duration-300 group"
           >
             <div className="p-2 rounded-full bg-white/20 group-hover:scale-110 transition-transform duration-300">
-              <BarChart3 className="h-6 w-6" />
+              <Clock className="h-6 w-6" />
             </div>
-            <span className="font-semibold">View Analytics</span>
+            <span className="font-semibold">View Jobs</span>
           </Button>
         </CardContent>
       </Card>

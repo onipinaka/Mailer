@@ -5,6 +5,7 @@ import { verifyAccessToken } from '@/lib/auth';
 import Lead from '@/models/Lead';
 import Job from '@/models/Job';
 import mongoose from 'mongoose';
+import { ApifyClient } from 'apify-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,81 +79,60 @@ async function processLeadGenerationJob(
 
     const leads: any[] = [];
 
-    // Try using Python scraper first (most reliable)
+    // Try using Apify Google Maps scraper (most reliable for production)
     try {
-      const { spawn } = require('child_process');
-      const path = require('path');
+      const apifyToken = process.env.APIFY_API_TOKEN;
       
-      const scriptPath = path.join(process.cwd(), 'scripts', 'scrape_google_maps.py');
-      const pythonProcess = spawn('python', [scriptPath, query, maxResults.toString()]);
+      if (apifyToken) {
+        console.log('Using Apify Google Maps scraper');
+        const client = new ApifyClient({ token: apifyToken });
 
-      let scriptOutput = '';
-      let jsonOutput = '';
-      let isCapturingJson = false;
-
-      pythonProcess.stdout.on('data', (data: Buffer) => {
-        const output = data.toString();
-        scriptOutput += output;
-        
-        if (output.includes('===JSON_OUTPUT_START===')) {
-          isCapturingJson = true;
-          jsonOutput = '';
-        } else if (output.includes('===JSON_OUTPUT_END===')) {
-          isCapturingJson = false;
-        } else if (isCapturingJson) {
-          jsonOutput += output;
-        }
-      });
-
-      pythonProcess.stderr.on('data', (data: Buffer) => {
-        console.error('Python stderr:', data.toString());
-      });
-
-      await new Promise<void>((resolve, reject) => {
-        pythonProcess.on('close', async (code: number) => {
-          if (code === 0 && jsonOutput) {
-            try {
-              const scrapedData = JSON.parse(jsonOutput);
-              
-              for (const business of scrapedData) {
-                const lead = new Lead({
-                  userId: new mongoose.Types.ObjectId(userId),
-                  businessName: business.name !== 'N/A' ? business.name : 'Unknown',
-                  category: business.category || query.split(' ')[0],
-                  address: business.address !== 'N/A' ? business.address : undefined,
-                  website: business.website !== 'N/A' ? business.website : undefined,
-                  phone: business.phone !== 'N/A' ? business.phone : undefined,
-                  googleMapsUrl: business.google_maps_url,
-                  rating: business.rating !== 'N/A' ? parseFloat(business.rating) : undefined,
-                  reviewsCount: business.reviews !== 'N/A' ? parseInt(business.reviews) : 0,
-                  tags: [...tags, query.split(' ')[0]],
-                  status: 'new',
-                  notes: `Hours: ${business.hours}`,
-                });
-
-                await lead.save();
-                leads.push(lead);
-
-                await Job.findByIdAndUpdate(jobId, {
-                  processedItems: leads.length,
-                  successCount: leads.length,
-                  progress: Math.round((leads.length / maxResults) * 100),
-                });
-              }
-              resolve();
-            } catch (err) {
-              console.error('Error parsing Python output:', err);
-              reject(err);
-            }
-          } else {
-            console.log('Python script output:', scriptOutput);
-            reject(new Error('Python script failed or no data returned'));
-          }
+        // Run the Google Maps scraper actor
+        const run = await client.actor('compass/crawler-google-places').call({
+          searchStringsArray: [query],
+          maxCrawledPlacesPerSearch: maxResults,
+          language: 'en',
+          deeperCityScrape: false,
+          skipClosedPlaces: false,
         });
-      });
 
-    } catch (pythonError) {
-      console.error('Python scraper failed:', pythonError);
+        // Fetch results from dataset
+        const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+        for (const place of items) {
+          const lead = new Lead({
+            userId: new mongoose.Types.ObjectId(userId),
+            businessName: place.title || place.name || 'Unknown',
+            category: place.categoryName || place.categories?.[0] || query.split(' ')[0],
+            address: place.address || place.location?.address,
+            website: place.website || place.url,
+            phone: place.phone || place.phoneUnformatted,
+            email: place.email,
+            googleMapsUrl: place.url || `https://www.google.com/maps/place/?q=place_id:${place.placeId}`,
+            rating: place.rating ? parseFloat(place.rating) : undefined,
+            reviewsCount: place.reviewsCount || place.totalScore || 0,
+            tags: [...tags, query.split(' ')[0]],
+            status: 'new',
+            notes: place.openingHours ? `Hours: ${JSON.stringify(place.openingHours)}` : undefined,
+          });
+
+          await lead.save();
+          leads.push(lead);
+
+          await Job.findByIdAndUpdate(jobId, {
+            processedItems: leads.length,
+            successCount: leads.length,
+            progress: Math.round((leads.length / maxResults) * 100),
+          });
+        }
+
+        console.log(`Apify scraper generated ${leads.length} leads`);
+      } else {
+        throw new Error('APIFY_API_TOKEN not configured');
+      }
+
+    } catch (apifyError) {
+      console.error('Apify scraper failed:', apifyError);
       
       // Fallback to Google Places API if available
       const googleApiKey = process.env.GOOGLE_PLACES_API_KEY;
@@ -204,7 +184,7 @@ async function processLeadGenerationJob(
           }
         }
       } else {
-        throw new Error('Both Python scraper and Google Places API failed. Please configure GOOGLE_PLACES_API_KEY or install Python with Selenium.');
+        throw new Error('Both Apify and Google Places API failed. Please configure APIFY_API_TOKEN or GOOGLE_PLACES_API_KEY.');
       }
     }
 
